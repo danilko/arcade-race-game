@@ -17,12 +17,12 @@ public class Camera : Godot.Camera
 
     public override void _Ready()
     {
-        if (_targetPath != null)
-        {
-            _target = (Spatial)GetNode(_targetPath);
-        }
     }
 
+    public void Initialize(Spatial target)
+    {
+        _target = target;
+    }
 
     public override void _PhysicsProcess(float delta)
     {

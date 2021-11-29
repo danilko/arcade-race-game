@@ -25,6 +25,9 @@ public class KinematicVehicle : KinematicBody
     [Signal]
     public delegate void CompleteLapTimer();
 
+    [Signal]
+    public delegate void UpdateBoosterCount();
+
     public enum TransformMode
     {
         CIRCUIT,
@@ -73,6 +76,8 @@ public class KinematicVehicle : KinematicBody
     private float _boostTime = 8.0f;
     [Export]
     private float _bustBoostTime = 3.0f;
+    [Export]
+    private float _boosterCount = 6;
 
     private float _boostRemainTime;
     private Timer _boostTimer;
@@ -107,11 +112,14 @@ public class KinematicVehicle : KinematicBody
         _lapTimeCounter = 0.0f;
 
         vehicleAnimationPlayer = (AnimationPlayer)GetNode("vehicle/AnimationPlayer");
+
     }
 
-    private void _onReady()
+    public void Initialize()
     {
         _updateTransformMode(TransformMode.CIRCUIT);
+
+        EmitSignal(nameof(UpdateBoosterCount), _boosterCount);
     }
 
     private void _updateTransformMode(TransformMode transformMode)
@@ -168,6 +176,15 @@ public class KinematicVehicle : KinematicBody
 
     private void _startBooster()
     {
+        // Only can enable booster if have remain
+        if(_boosterCount <= 0)
+        {
+            return;
+        }
+
+        _boosterCount--;
+        EmitSignal(nameof(UpdateBoosterCount), _boosterCount);
+
         _boosterMode = BoosterMode.ON;
         _boostRemainTime = _boostTime;
 
