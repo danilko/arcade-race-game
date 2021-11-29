@@ -17,6 +17,26 @@ Builds for supported platforms can be downloaded below (Linux (Tested on Fedora 
 ![Screenshot0](/screenshots/screenshot_0.png?raw=true "Screenshot 0")
 ![Screenshot1](/screenshots/screenshot_1.png?raw=true "Screenshot 1")
 
+
+## What is working:
+- Basic driving mechanic
+- Basic transform logic 
+-- Circuit mode allow sharp turning with lower engine speed
+-- Aero mode allow higher engine speed with lower turn ability
+- Basic booster and extend logic
+-- Initial phase booster allows 1.5x engine speed
+-- Bust phase booster allows 3.0x engine speed
+- Basic time attack flow complete with three laps
+- Basic end to end flow
+
+## How to execute:
+Download the appropriate release (linux for Linux OS, and win for Windows OS)
+
+Unpack the compressed, and execute the binary
+
+Control can be found in `Settings` button after entering the game
+
+
 ## References/Models Licenses:
 
 Detail can be found [References.md](References.md)
