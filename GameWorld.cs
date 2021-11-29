@@ -12,6 +12,7 @@ public class GameWorld : Spatial
     public void _onReady()
     {
         InitializeVehicle();
+        //InitializeSpatialVehicle();
     }
 
     public void InitializeVehicle()
@@ -27,6 +28,21 @@ public class GameWorld : Spatial
         hud.Initialize(kinematicVehicle);
 
         kinematicVehicle.Initialize();
+    }
+
+    public void InitializeSpatialVehicle()
+    {
+        SpatialVehicle spatialVehicle = (SpatialVehicle)((PackedScene)GD.Load("res://vehicles/SpatialVehicle.tscn")).Instance();
+        spatialVehicle.Transform = ((Position3D)GetNode("vehiclePosition")).Transform;
+        this.AddChild(spatialVehicle);
+
+        Camera camera = ((Camera)GetNode("Camera"));
+        camera.Initialize((Spatial)spatialVehicle.GetNode("Position3D"));
+
+        HUD hud = ((HUD)GetNode("HUD"));
+        hud.Initialize(spatialVehicle);
+
+        spatialVehicle.Initialize();
     }
 
 //  // Called every frame. 'delta' is the elapsed time since the previous frame.

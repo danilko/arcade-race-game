@@ -15,9 +15,14 @@ public class track : Spatial
 
     private void _onDetectionZoneEntered(Node body)
     {
+        GD.Print(body.Name);
         if(body is KinematicVehicle)
         {
             ((KinematicVehicle)body).LapTimerStart();
+        }
+        else if(body.GetParent() is SpatialVehicle)
+        {
+            ((SpatialVehicle)body.GetParent()).LapTimerStart();
         }
     }
 

@@ -72,6 +72,16 @@ public class HUD : Control
         vehicle.Connect(nameof(KinematicVehicle.UpdateTransformMode), this, nameof(_updateTransformModeDisplay));
     }
 
+    public void Initialize(SpatialVehicle vehicle)
+    {
+        vehicle.Connect(nameof(SpatialVehicle.CompleteLapTimer), this, nameof(_updateBestLapTimerDisplay));
+        vehicle.Connect(nameof(SpatialVehicle.UpdateBoosterTimer), this, nameof(_updateBoosterTImerDisplay));
+        vehicle.Connect(nameof(SpatialVehicle.UpdateLapTimer), this, nameof(_updateLapTimerDisplay));
+        vehicle.Connect(nameof(SpatialVehicle.UpdateBoosterCount), this, nameof(_updateBoosterCountDisplay));
+        vehicle.Connect(nameof(SpatialVehicle.UpdateSpeed), this, nameof(_updateVelocityDisplay));
+        vehicle.Connect(nameof(SpatialVehicle.UpdateTransformMode), this, nameof(_updateTransformModeDisplay));
+    }
+
     private void _updateTransformModeDisplay(KinematicVehicle.TransformMode transformMode)
     {
         // Workaround as the vehicle called this during READY state

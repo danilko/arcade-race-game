@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public class KinematicVehicle : KinematicBody
+public class SpatialVehicle : Spatial
 {
 
     [Signal]
@@ -34,43 +34,31 @@ public class KinematicVehicle : KinematicBody
         AERO
     }
 
-    public enum BoosterMode
-    {
-        OFF,
-        ON,
-        BUST
-    }
-
     private TransformMode _transformMode;
 
-    [Export]
-    private float _gravity = -20.0f;
-
-    // distance between front/rear axles
-    [Export]
-    private float _wheelBase = 10f;
-
-    // front wheel max turning angle (deg)
-    [Export]
-    private float _steeringLimit = 5.0f;
+    private RigidBody _rigidBody;
+    private Spatial _vehicleModel;
+    private RayCast _groundRay;
 
     [Export]
-    private float _enginePower = 2000.0f;
+    // Where to place the car mesh relative to the sphere
+    private Vector3 _sphereoffset = new Vector3(0.0f, -0.6f, 0.0f);
+    // Engine power
 
     [Export]
-    private float _braking = -0.1f;
+    private float _acceleration = 100.0f;
+
     [Export]
-    private float _friction = -10.0f;
+    // Turn amount, in degrees
+    private float _steering = 21.0f;
+
     [Export]
-    private float _drag = -2.0f;
+    // How quickly the car turns
+    private float _turnSpeed = 5.0f;
+
+    // Below this speed, the car doesn't turn
     [Export]
-    private float _maxSpeedReverse = 100.0f;
-    [Export]
-    float _slipSpeed = 10.0f;
-    [Export]
-    private float _tractionSlow = 0.75f;
-    [Export]
-    private float _tractionFast = 0.02f;
+    float _turnStopLimit = 0.75f;
 
     [Export]
     private float _boostTime = 8.0f;
@@ -85,14 +73,11 @@ public class KinematicVehicle : KinematicBody
     private Particles _boostParticles1;
     private BoosterMode _boosterMode;
 
-    // Car state properties
-    // current acceleration
-    private Vector3 _acceleration = Vector3.Zero;
-    // current velocity
-    private Vector3 _velocity = Vector3.Zero;
-    // current wheel angle
-    private float _steerAngle = 0.0f;
-    bool _drifting = false;
+    // Variables for input values
+    float _speedInput = 0.0f;
+    float _rotateInput = 0.0f;
+
+    Position3D cameraOrigin;
 
     private int _lapCounter;
     private float _lapTimeCounter;
@@ -100,26 +85,39 @@ public class KinematicVehicle : KinematicBody
 
     private AnimationPlayer vehicleAnimationPlayer;
 
+    public enum BoosterMode
+    {
+        OFF,
+        ON,
+        BUST
+    }
+
     public override void _Ready()
     {
         _boostTimer = (Timer)GetNode("BoosterTimer");
-        _boostParticles1 = (Particles)GetNode("BoostParticles1");
-        _boostParticles2 = (Particles)GetNode("BoostParticles2");
+        _boostParticles1 = (Particles)GetNode("vehicle/BoostParticles1");
+        _boostParticles2 = (Particles)GetNode("vehicle/BoostParticles2");
         _boosterMode = BoosterMode.OFF;
 
         _lapTimer = (Timer)GetNode("LapTimer");
         _lapCounter = 0;
         _lapTimeCounter = 0.0f;
 
+        _rigidBody = (RigidBody)GetNode("RigidBody");
+        _vehicleModel = (Spatial)GetNode("vehicle");
+        _groundRay = (RayCast)GetNode("vehicle/GroundRay");
+
         vehicleAnimationPlayer = (AnimationPlayer)GetNode("vehicle/AnimationPlayer");
 
+        // Raycast to not collide with rigidBody
+        _groundRay.AddException(_rigidBody);
+
+        cameraOrigin = (Position3D)GetNode("Position3D");
     }
 
     public void Initialize()
     {
         _updateTransformMode(TransformMode.CIRCUIT);
-
-        EmitSignal(nameof(UpdateBoosterCount), _boosterCount);
     }
 
     private void _updateTransformMode(TransformMode transformMode)
@@ -129,19 +127,19 @@ public class KinematicVehicle : KinematicBody
         if (transformMode == TransformMode.CIRCUIT)
         {
             vehicleAnimationPlayer.Play("transform");
-            
-            _steeringLimit = 10.0f;
-            _enginePower = 1000.0f;
+            _acceleration = 100.0f;
+            _steering = 21.0f;
         }
         else
         {
             vehicleAnimationPlayer.Play("bustbooster");
-            _steeringLimit = 1.0f;
-            _enginePower = 2000.0f;
+            _acceleration = 150.0f;
+            _steering = 21.0f;
         }
 
         EmitSignal(nameof(UpdateTransformMode), _transformMode);
     }
+
 
     public void LapTimerStart()
     {
@@ -168,7 +166,7 @@ public class KinematicVehicle : KinematicBody
         _lapTimer.Start();
     }
 
-    private void _stopBooster()
+        private void _stopBooster()
     {
         _boostRemainTime = 0.0f;
         _updateBoostRemainTime();
@@ -209,6 +207,7 @@ public class KinematicVehicle : KinematicBody
         _boostTimer.Start();
     }
 
+
     private void _updateBoostRemainTime()
     {
         _boostRemainTime--;
@@ -228,35 +227,27 @@ public class KinematicVehicle : KinematicBody
         }
     }
 
-    private void _getInput(float delta)
+
+
+    public void GetInput(float delta)
     {
-        float turn = Input.GetActionStrength("steer_left");
-        turn -= Input.GetActionStrength("steer_right");
-
-        _steerAngle = turn * Mathf.Deg2Rad(_steeringLimit);
-
-
-        _acceleration = Vector3.Zero;
-
-        if (Input.IsActionPressed("accelerate"))
+        //Can't steer/accelerate when in the air
+        if (!_groundRay.IsColliding())
         {
-            _acceleration = -Transform.basis.z * _enginePower;
-
-            if (_boosterMode == BoosterMode.ON)
-            {
-                _acceleration = _acceleration * 1.5f;
-            }
-
-            if (_boosterMode == BoosterMode.BUST)
-            {
-                _acceleration = _acceleration * 3f;
-            }
+            return;
         }
 
-        if (Input.IsActionPressed("brake"))
-        {
-            _acceleration = -Transform.basis.z * _braking;
-        }
+        // Get accelerate/brake input
+        _speedInput = 0.0f;
+        _speedInput += Input.GetActionStrength("accelerate");
+        _speedInput -= Input.GetActionStrength("brake");
+        _speedInput *= _acceleration;
+
+        // Get steering input
+        _rotateInput = 0.0f;
+        _rotateInput += Input.GetActionStrength("steer_left");
+        _rotateInput -= Input.GetActionStrength("steer_right");
+        _rotateInput *= Mathf.Deg2Rad(_steering);
 
         // Only can modify booster in aero mode
         if (Input.IsActionJustReleased("booster") && _transformMode == TransformMode.AERO)
@@ -290,6 +281,19 @@ public class KinematicVehicle : KinematicBody
             _updateTransformMode(_transformMode);
         }
 
+        // rotate car mesh
+        if (_rigidBody.LinearVelocity.Length() > _turnStopLimit)
+        {
+            var newBasis = _vehicleModel.GlobalTransform.basis.Rotated(_vehicleModel.GlobalTransform.basis.y, _rotateInput);
+
+            Transform transform = _vehicleModel.GlobalTransform;
+            transform.basis = _vehicleModel.GlobalTransform.basis.Slerp(newBasis, _turnSpeed * delta);
+            _vehicleModel.Transform = transform;
+
+            _vehicleModel.GlobalTransform = _vehicleModel.GlobalTransform.Orthonormalized();
+        }
+
+
         float visualRotationFactor = 1.0f;
         if (_transformMode == TransformMode.CIRCUIT)
         {
@@ -300,10 +304,10 @@ public class KinematicVehicle : KinematicBody
         Vector3 rotation = ((MeshInstance)GetNode("vehicle/modelwheel1")).Rotation;
 
         // Not rotate forward during turn to simulate sliding
-        if (turn != 0)
+        if (_rotateInput != 0)
         {
             rotation.x = 0.0f;
-            rotation.y = _steerAngle * visualRotationFactor;
+            rotation.y = _rotateInput * visualRotationFactor;
         }
         else
         {
@@ -319,10 +323,10 @@ public class KinematicVehicle : KinematicBody
         rotation = ((MeshInstance)GetNode("vehicle/modelwheel0")).Rotation;
 
         // Not rotate forward during turn to simulate sliding
-        if (turn != 0)
+        if (_rotateInput != 0)
         {
             rotation.x = 0.0f;
-            rotation.y = _steerAngle * visualRotationFactor;
+            rotation.y = _rotateInput * visualRotationFactor;
         }
         else
         {
@@ -335,70 +339,23 @@ public class KinematicVehicle : KinematicBody
         ((MeshInstance)GetNode("vehicle/modelwheel01")).Rotation = rotation;
 
 
-    }
-    private void _applyFriction(float delta)
-    {
-        if (_velocity.Length() < 0.2 && _acceleration.Length() == 0)
-        {
-            _velocity.x = 0.0f;
-            _velocity.z = 0.0f;
-        }
-
-        Vector3 frictionForce = _velocity * _friction * delta;
-        Vector3 dragForce = _velocity * _velocity.Length() * _drag * delta;
-        _acceleration += dragForce + frictionForce;
-    }
-    private void _calculateSteering(float delta)
-    {
-        Vector3 rearWheel = Transform.origin + Transform.basis.z * _wheelBase / 2.0f;
-        Vector3 frontWheel = Transform.origin - Transform.basis.z * _wheelBase / 2.0f;
-        rearWheel += _velocity * delta;
-        frontWheel += _velocity.Rotated(Transform.basis.y, _steerAngle) * delta;
-        Vector3 newHeading = rearWheel.DirectionTo(frontWheel);
-
-        if (!_drifting && _velocity.Length() > _slipSpeed)
-        {
-            _drifting = true;
-        }
-
-        if (_drifting && _velocity.Length() < _slipSpeed && _steerAngle == 0)
-        {
-            _drifting = false;
-        }
-
-        float traction = _drifting ? _tractionFast : _tractionSlow;
-
-
-        float d = newHeading.Dot(_velocity.Normalized());
-        if (d > 0)
-        {
-            _velocity.x = Mathf.Lerp(_velocity.x, newHeading.x * _velocity.Length(), traction);
-            _velocity.y = Mathf.Lerp(_velocity.y, newHeading.y * _velocity.Length(), traction);
-            _velocity.z = Mathf.Lerp(_velocity.z, newHeading.z * _velocity.Length(), traction);
-        }
-
-        if (d < 0)
-        {
-            _velocity = -newHeading * Mathf.Min(_velocity.Length(), _maxSpeedReverse);
-        }
-
-        LookAt(Transform.origin + newHeading, Transform.basis.y);
+        EmitSignal(nameof(UpdateSpeed), (int)(_rigidBody.LinearVelocity.Length()));
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        if (IsOnFloor())
-        {
-            _getInput(delta);
-            _applyFriction(delta);
-            _calculateSteering(delta);
-        }
+        GetInput(delta);
 
-        _acceleration.y = _gravity;
-        _velocity += _acceleration * delta;
+        // Keep the car mesh aligned with the sphere
+        Transform transform = _vehicleModel.Transform;
 
-        EmitSignal(nameof(UpdateSpeed), (int)_velocity.Length());
-        _velocity = MoveAndSlideWithSnap(_velocity, -Transform.basis.y, Vector3.Up, true);
+        transform.origin = _rigidBody.Transform.origin + _sphereoffset;
+        _vehicleModel.Transform = transform;
+
+        // Accelerate based on car's forward direction
+        _rigidBody.AddCentralForce(-_vehicleModel.GlobalTransform.basis.z * _speedInput);
+
+        cameraOrigin.GlobalTransform = _vehicleModel.GlobalTransform;
 
     }
 }
