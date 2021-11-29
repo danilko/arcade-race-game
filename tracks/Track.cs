@@ -3,9 +3,6 @@ using System;
 
 public class track : Spatial
 {
-    // Declare member variables here. Examples:
-    // private int a = 2;
-    // private string b = "text";
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -15,7 +12,6 @@ public class track : Spatial
 
     private void _onDetectionZoneEntered(Node body)
     {
-        GD.Print(body.Name);
         if(body is KinematicVehicle)
         {
             ((KinematicVehicle)body).LapTimerStart();

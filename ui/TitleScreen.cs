@@ -11,6 +11,18 @@ public class TitleScreen : Control
         _gameStates = (GameStates)GetNode("/root/GAMESTATES");
     }
 
+    public void _onChangeVehicleImplementation(bool enable)
+    {
+        if(enable)
+        {
+            _gameStates.CurrentVehicleImplementation = GameStates.VehicleImplementation.RIGIDBODY_ARCADE;
+        }
+        else
+        {
+            _gameStates.CurrentVehicleImplementation = GameStates.VehicleImplementation.RIGIDBODY_ARCADE;
+        }
+    }
+
     public void _onNewGame()
     {
         _gameStates.EnterGame();

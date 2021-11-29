@@ -10,6 +10,13 @@ public class GameStates : Node
 
     public String endResultScreen = "res://ui/EndGameScreen.tscn";
 
+    public enum VehicleImplementation {
+        KINEMATIC,
+        RIGIDBODY_ARCADE
+    }
+
+    public VehicleImplementation CurrentVehicleImplementation {get; set;}
+
     private String messages;
 
     private int _totalLap = 3;

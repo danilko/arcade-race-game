@@ -11,8 +11,15 @@ public class GameWorld : Spatial
 
     public void _onReady()
     {
-        InitializeVehicle();
-        //InitializeSpatialVehicle();
+        GameStates gameStates = (GameStates)GetNode("/root/GAMESTATES");
+        if(gameStates.CurrentVehicleImplementation == GameStates.VehicleImplementation.KINEMATIC)
+        {
+            InitializeVehicle();
+        }
+        else
+        {
+            InitializeSpatialVehicle();
+        }
     }
 
     public void InitializeVehicle()
