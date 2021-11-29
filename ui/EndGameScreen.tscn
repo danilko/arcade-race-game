@@ -1,0 +1,155 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://assets/titlescreen.png" type="Texture" id=1]
+[ext_resource path="res://assets/fonts/Kenney Future.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://ui/EndGameScreen.cs" type="Script" id=3]
+
+[sub_resource type="DynamicFont" id=2]
+size = 30
+font_data = ExtResource( 2 )
+
+[sub_resource type="DynamicFont" id=1]
+font_data = ExtResource( 2 )
+
+[node name="EndScreen" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Background" type="TextureRect" parent="."]
+margin_left = -43.0
+margin_top = -37.9391
+margin_right = 1162.0
+margin_bottom = 610.061
+texture = ExtResource( 1 )
+expand = true
+
+[node name="Timer" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="ColorRect" type="ColorRect" parent="Timer"]
+modulate = Color( 0, 0, 0, 0.643137 )
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="Timer"]
+margin_left = 359.857
+margin_top = 26.0
+margin_right = 549.857
+margin_bottom = 61.0
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "END GAME"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapTimerBest" type="Label" parent="Timer"]
+margin_left = 39.3518
+margin_top = 140.083
+margin_right = 174.352
+margin_bottom = 158.083
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "-- : -- : --.--"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapTimerBestLabel" type="Label" parent="Timer"]
+margin_left = 27.3518
+margin_top = 116.083
+margin_right = 162.352
+margin_bottom = 134.083
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "BEST LAP"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapTimerTotal" type="Label" parent="Timer"]
+margin_left = 324.0
+margin_top = 140.0
+margin_right = 536.0
+margin_bottom = 158.0
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "-- : -- : --.--"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapTImerTotalLabel" type="Label" parent="Timer"]
+margin_left = 311.673
+margin_top = 116.083
+margin_right = 446.673
+margin_bottom = 134.083
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "TOTAL"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapTimerLapsLabel" type="Label" parent="Timer"]
+margin_left = 27.3518
+margin_top = 184.083
+margin_right = 162.352
+margin_bottom = 202.083
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "LAPS"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapTimerLapTemplate" type="Label" parent="Timer"]
+visible = false
+margin_left = 40.6866
+margin_top = 148.29
+margin_right = 175.687
+margin_bottom = 166.29
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "-- : -- : --.--"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapsContainer" type="VBoxContainer" parent="Timer"]
+margin_left = 41.0
+margin_top = 216.0
+margin_right = 386.0
+margin_bottom = 422.0
+size_flags_vertical = 3
+custom_constants/separation = 20
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Next" type="Button" parent="."]
+margin_left = 857.167
+margin_top = 552.762
+margin_right = 983.167
+margin_bottom = 582.762
+text = "NEXT"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="pressed" from="Next" to="." method="_onNext"]

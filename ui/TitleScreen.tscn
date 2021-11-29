@@ -1,0 +1,92 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://assets/titlescreen.png" type="Texture" id=1]
+[ext_resource path="res://ui/TitleScreen.cs" type="Script" id=2]
+[ext_resource path="res://assets/fonts/Kenney Future.ttf" type="DynamicFontData" id=3]
+
+[sub_resource type="DynamicFont" id=2]
+size = 40
+font_data = ExtResource( 3 )
+
+[node name="TitleScreen" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Background" type="TextureRect" parent="."]
+margin_left = -43.0
+margin_top = -37.9391
+margin_right = 1162.0
+margin_bottom = 610.061
+texture = ExtResource( 1 )
+expand = true
+
+[node name="NewGame" type="Button" parent="."]
+margin_left = 542.626
+margin_top = 552.762
+margin_right = 668.626
+margin_bottom = 582.762
+text = "NEW GAME"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Settings" type="Button" parent="."]
+margin_left = 703.085
+margin_top = 552.762
+margin_right = 829.085
+margin_bottom = 582.762
+text = "SETTINGS"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Exit" type="Button" parent="."]
+margin_left = 857.167
+margin_top = 552.762
+margin_right = 983.167
+margin_bottom = 582.762
+text = "EXIT"
+
+[node name="Label" type="Label" parent="."]
+margin_left = 49.3883
+margin_top = 547.761
+margin_right = 132.388
+margin_bottom = 561.761
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "Racing Game"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SettingDialog" type="WindowDialog" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = 45.0
+margin_right = -250.0
+margin_bottom = -160.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RichTextLabel" type="RichTextLabel" parent="SettingDialog"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "CURRENT CONTROL IS HARDCODED
+
+ACCELERATION : W/UP ARROW
+REVERSE/STOP: S/Down ARROW
+TURN: A/LEFT ARROW, D/RIGHT ARROW
+
+TRANFORM: X
+BOOSTER: C
+
+BUST BOOSTER: WHEN LIMIT APPEAR DURING BOOSTER, PRESS BOOSTER AGAIN TO ENABLE"
+
+[connection signal="pressed" from="NewGame" to="." method="_onNewGame"]
+[connection signal="pressed" from="Settings" to="." method="_onSettings"]
+[connection signal="pressed" from="Exit" to="." method="_onExit"]

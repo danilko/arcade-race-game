@@ -1,21 +1,24 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://assets/fonts/Kenney Future.ttf" type="DynamicFontData" id=1]
-[ext_resource path="res://hud/HUD.cs" type="Script" id=2]
+[ext_resource path="res://ui/HUD.cs" type="Script" id=2]
 [ext_resource path="res://assets/onscreen_game_indicator.png" type="Texture" id=3]
 
 [sub_resource type="DynamicFont" id=1]
 font_data = ExtResource( 1 )
 
+[sub_resource type="DynamicFont" id=8]
+font_data = ExtResource( 1 )
+
 [sub_resource type="DynamicFont" id=2]
+size = 40
+font_data = ExtResource( 1 )
+
+[sub_resource type="DynamicFont" id=4]
 size = 30
 font_data = ExtResource( 1 )
 
 [sub_resource type="DynamicFont" id=3]
-font_data = ExtResource( 1 )
-
-[sub_resource type="DynamicFont" id=4]
-size = 20
 font_data = ExtResource( 1 )
 
 [sub_resource type="DynamicFont" id=5]
@@ -55,7 +58,7 @@ tracks/0/keys = {
 "values": [ Color( 0.858824, 0.466667, 0.0470588, 1 ), Color( 0.858824, 0.466667, 0.0470588, 0.392157 ), Color( 0.858824, 0.466667, 0.0470588, 1 ) ]
 }
 
-[node name="Control" type="Control"]
+[node name="HUD" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 2 )
@@ -63,16 +66,19 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Rotation" type="Label" parent="."]
-margin_left = 747.0
-margin_top = 562.0
-margin_right = 998.0
-margin_bottom = 601.0
+[node name="BoosterCountLabel" type="Label" parent="."]
+margin_left = 905.62
+margin_top = 548.223
+margin_right = 996.62
+margin_bottom = 587.223
 rect_pivot_offset = Vector2( -539.529, -373.225 )
 custom_fonts/font = SubResource( 1 )
 custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
-text = "Rotation
-"
+text = "BOOSTER
+REMAIN"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="LapTimerBest" type="Label" parent="."]
 margin_left = 39.3518
@@ -144,7 +150,7 @@ margin_left = 27.3518
 margin_top = 90.9187
 margin_right = 162.352
 margin_bottom = 108.919
-rect_pivot_offset = Vector2( -539.529, -373.225 )
+rect_pivot_offset = Vector2( 52.2628, 9.00015 )
 custom_fonts/font = SubResource( 1 )
 custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
 text = "CURRENT LAP"
@@ -152,20 +158,54 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="LapTimerLapsLabel" type="Label" parent="."]
+margin_left = 27.0
+margin_top = 158.0
+margin_right = 162.0
+margin_bottom = 176.0
+rect_pivot_offset = Vector2( 52.2628, 9.00015 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "LAPS"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapTimerLapTemplate" type="Label" parent="."]
+visible = false
+margin_left = 40.6866
+margin_top = 186.13
+margin_right = 175.687
+margin_bottom = 204.13
+rect_pivot_offset = Vector2( -539.529, -373.225 )
+custom_fonts/font = SubResource( 8 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "-- : -- : --.--"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LapsContainer" type="VBoxContainer" parent="."]
+margin_left = 38.0
+margin_top = 190.0
+margin_right = 383.0
+margin_bottom = 328.0
+custom_constants/separation = 20
+
 [node name="VelocityLabel" type="Label" parent="."]
-margin_left = 904.0
-margin_top = 508.491
-margin_right = 1000.0
-margin_bottom = 547.491
+margin_left = 905.0
+margin_top = 480.0
+margin_right = 1001.0
+margin_bottom = 498.0
 custom_fonts/font = SubResource( 1 )
 custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
 text = "km/s"
 
 [node name="Velocity" type="Label" parent="."]
-margin_left = 745.413
-margin_top = 493.806
-margin_right = 996.413
-margin_bottom = 532.806
+margin_left = 744.832
+margin_top = 454.617
+margin_right = 843.832
+margin_bottom = 499.617
 custom_fonts/font = SubResource( 2 )
 custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
 text = "500"
@@ -173,11 +213,23 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="BoosterCount" type="Label" parent="."]
+margin_left = 745.23
+margin_top = 551.841
+margin_right = 820.23
+margin_bottom = 586.841
+custom_fonts/font = SubResource( 4 )
+custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
+text = "00"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="TransformModeLabel" type="Label" parent="."]
 margin_left = 904.78
-margin_top = 541.827
+margin_top = 513.511
 margin_right = 1000.78
-margin_bottom = 580.827
+margin_bottom = 552.511
 custom_fonts/font = SubResource( 3 )
 custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
 text = "MODE"
@@ -186,10 +238,10 @@ __meta__ = {
 }
 
 [node name="TransformMode" type="Label" parent="."]
-margin_left = 745.0
-margin_top = 534.568
-margin_right = 890.0
-margin_bottom = 557.568
+margin_left = 743.0
+margin_top = 506.252
+margin_right = 888.0
+margin_bottom = 541.252
 custom_fonts/font = SubResource( 4 )
 custom_colors/font_color = Color( 0.858824, 0.466667, 0.0470588, 1 )
 text = "CIRCUIT"
@@ -206,9 +258,9 @@ margin_bottom = 228.775
 
 [node name="BoosterProgress" type="TextureProgress" parent="BoosterControl"]
 margin_left = 415.771
-margin_top = 135.548
+margin_top = 94.9614
 margin_right = 1439.77
-margin_bottom = 1159.55
+margin_bottom = 1118.96
 rect_scale = Vector2( 0.15, 0.15 )
 value = 50.0
 texture_under = ExtResource( 3 )
@@ -223,9 +275,9 @@ __meta__ = {
 [node name="BoosterLabel" type="Label" parent="BoosterControl"]
 modulate = Color( 0.858824, 0.466667, 0.0470588, 1 )
 margin_left = 457.017
-margin_top = 217.882
+margin_top = 177.295
 margin_right = 533.017
-margin_bottom = 235.882
+margin_bottom = 195.295
 rect_pivot_offset = Vector2( 38, 18 )
 custom_fonts/font = SubResource( 1 )
 text = "REMAIN"
@@ -237,9 +289,9 @@ __meta__ = {
 visible = false
 modulate = Color( 0.858824, 0.466667, 0.0470588, 1 )
 margin_left = 453.457
-margin_top = 242.0
+margin_top = 202.0
 margin_right = 539.457
-margin_bottom = 260.0
+margin_bottom = 220.0
 rect_pivot_offset = Vector2( 38, 18 )
 custom_fonts/font = SubResource( 1 )
 text = "- BUST -"
@@ -251,9 +303,9 @@ __meta__ = {
 visible = false
 modulate = Color( 0.858824, 0.466667, 0.0470588, 1 )
 margin_left = 453.457
-margin_top = 242.0
-margin_right = 539.457
-margin_bottom = 260.0
+margin_top = 202.0
+margin_right = 540.457
+margin_bottom = 220.0
 rect_pivot_offset = Vector2( 38, 18 )
 custom_fonts/font = SubResource( 1 )
 text = "- LIMIT -"
@@ -264,9 +316,9 @@ __meta__ = {
 [node name="BoosterTimer" type="Label" parent="BoosterControl"]
 modulate = Color( 0.858824, 0.466667, 0.0470588, 1 )
 margin_left = 464.682
-margin_top = 182.951
+margin_top = 142.364
 margin_right = 514.682
-margin_bottom = 217.951
+margin_bottom = 177.364
 custom_fonts/font = SubResource( 5 )
 text = "25"
 __meta__ = {
@@ -276,9 +328,9 @@ __meta__ = {
 [node name="BoosterUnitLabel" type="Label" parent="BoosterControl"]
 modulate = Color( 0.858824, 0.466667, 0.0470588, 1 )
 margin_left = 519.13
-margin_top = 199.525
+margin_top = 158.938
 margin_right = 533.13
-margin_bottom = 217.525
+margin_bottom = 176.938
 custom_fonts/font = SubResource( 1 )
 text = "s"
 __meta__ = {

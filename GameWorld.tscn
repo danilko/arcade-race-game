@@ -1,10 +1,10 @@
 [gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://tracks/track_f1.tscn" type="PackedScene" id=1]
-[ext_resource path="res://vehicles/KinematicVehicle.tscn" type="PackedScene" id=2]
 [ext_resource path="res://Camera.cs" type="Script" id=3]
 [ext_resource path="res://assets/hdr/sunflowers_2k.hdr" type="Texture" id=4]
-[ext_resource path="res://hud/HUD.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/HUD.tscn" type="PackedScene" id=5]
+[ext_resource path="res://GameWorld.cs" type="Script" id=6]
 
 [sub_resource type="PanoramaSky" id=1]
 radiance_size = 4
@@ -26,19 +26,21 @@ glow_enabled = true
 glow_bloom = 1.0
 adjustment_brightness = 1.05
 
-[node name="Track" type="Spatial"]
+[node name="GameWorld" type="Spatial"]
+script = ExtResource( 6 )
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 2 )
 
 [node name="Camera" type="Camera" parent="."]
+transform = Transform( -0.202719, 0, 0.979237, 0, 1, 0, -0.979237, 0, -0.202719, 283.443, 29.0039, 255.498 )
 current = true
 fov = 100.0
 near = 0.01
 far = 5000.0
 script = ExtResource( 3 )
 _lerpSpeed = 40.0
-_targetPath = NodePath("../KinematicVehicle")
+_targetPath = NodePath("../vehiclePosition")
 _offset = Vector3( 0, 4, 8 )
 
 [node name="track_f1" parent="." instance=ExtResource( 1 )]
@@ -52,14 +54,9 @@ shadow_bias = 0.34
 directional_shadow_mode = 0
 directional_shadow_normal_bias = 0.5
 
-[node name="KinematicVehicle" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 290.619, 10.4619, 0 )
+[node name="vehiclePosition" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 290.619, 9.11044, 0 )
 
-[node name="Control" parent="." instance=ExtResource( 5 )]
+[node name="HUD" parent="." instance=ExtResource( 5 )]
 
-[connection signal="CompleteLapTimer" from="KinematicVehicle" to="Control" method="_updateBestLapTimerDisplay"]
-[connection signal="UpdateBoosterTimer" from="KinematicVehicle" to="Control" method="_updateBoosterTImerDisplay"]
-[connection signal="UpdateLapTimer" from="KinematicVehicle" to="Control" method="_updateLapTimerDisplay"]
-[connection signal="UpdateRotation" from="KinematicVehicle" to="Control" method="_updateRotationDisplay"]
-[connection signal="UpdateSpeed" from="KinematicVehicle" to="Control" method="_updateVelocityDisplay"]
-[connection signal="UpdateTransformMode" from="KinematicVehicle" to="Control" method="_updateTransformModeDisplay"]
+[connection signal="ready" from="." to="." method="_onReady"]

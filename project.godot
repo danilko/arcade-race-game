@@ -15,8 +15,12 @@ _global_script_class_icons={
 [application]
 
 config/name="Racing Game"
-run/main_scene="res://GameWorld.tscn"
+run/main_scene="res://ui/TitleScreen.tscn"
 config/icon="res://icon.png"
+
+[autoload]
+
+GAMESTATES="*res://GameStates.tscn"
 
 [input]
 
