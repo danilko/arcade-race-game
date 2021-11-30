@@ -130,13 +130,13 @@ public class SpatialVehicle : Spatial
         if (transformMode == TransformMode.CIRCUIT)
         {
             vehicleAnimationPlayer.Play("transform");
-            _acceleration = 8000.0f;
+            _acceleration = 7000.0f;
             _steering = 21.0f;
         }
         else
         {
             vehicleAnimationPlayer.Play("bustbooster");
-            _acceleration = 8800.0f;
+            _acceleration = 7350.0f;
             _steering = 1.0f;
         }
 
@@ -246,11 +246,23 @@ public class SpatialVehicle : Spatial
             return;
         }
 
+        float boosterAcceleration = 1.0f;
+
+        if (_boosterMode == BoosterMode.ON)
+        {
+            boosterAcceleration = 1.4f;
+        }
+
+        if (_boosterMode == BoosterMode.BUST)
+        {
+            boosterAcceleration = 1.5f;
+        }
+
         // Get accelerate/brake input
         _speedInput = 0.0f;
         _speedInput += Input.GetActionStrength("accelerate");
         _speedInput -= Input.GetActionStrength("brake");
-        _speedInput *= _acceleration;
+        _speedInput *= _acceleration * boosterAcceleration;
 
         // Get steering input
         _rotateInput = 0.0f;
