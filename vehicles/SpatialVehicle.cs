@@ -129,13 +129,13 @@ public class SpatialVehicle : Spatial
         if (transformMode == TransformMode.CIRCUIT)
         {
             vehicleAnimationPlayer.Play("transform");
-            _acceleration = 150.0f;
+            _acceleration = 8000.0f;
             _steering = 21.0f;
         }
         else
         {
             vehicleAnimationPlayer.Play("bustbooster");
-            _acceleration = 180.0f;
+            _acceleration = 8800.0f;
             _steering = 1.0f;
         }
 
