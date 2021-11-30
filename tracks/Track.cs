@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public class track : Spatial
+public class Track : Spatial
 {
 
     // Called when the node enters the scene tree for the first time.

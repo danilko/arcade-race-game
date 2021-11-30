@@ -29,6 +29,7 @@ public class HUD : Control
 
     private GameStates _gameStates;
 
+    private WindowDialog _windowDialog;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -60,6 +61,10 @@ public class HUD : Control
         _animationPlayer = (AnimationPlayer)GetNode("AnimationPlayer");
 
         _transformMode = (Label)GetNode("TransformMode");
+
+
+        _windowDialog = (WindowDialog)GetNode("SettingDialog");
+
     }
 
     public void Initialize(KinematicVehicle vehicle)
@@ -91,6 +96,12 @@ public class HUD : Control
         }
 
         _transformMode.Text = "" + transformMode;
+    }
+
+    private void _onExitGameSession()
+    {
+        _windowDialog.Hide();
+        _gameStates.EnterTitleScreen();
     }
 
     private void _updateLapTimerDisplay(float centiseconds, int lap)
@@ -130,7 +141,7 @@ public class HUD : Control
 
         // TODO Consider move this logic to game world level
         // Right now will end game when current completed lap == total lap
-        if(lap == _gameStates.GetTotalLaps())
+        if (lap == _gameStates.GetTotalLaps())
         {
             _transitionToEndGame();
         }
@@ -182,7 +193,7 @@ public class HUD : Control
 
     private void _updateBoosterCountDisplay(int boosterCount)
     {
-        if(_boosterCount == null)
+        if (_boosterCount == null)
         {
             _boosterCount = (Label)GetNode("BoosterCount");
         }
@@ -233,6 +244,26 @@ public class HUD : Control
                 _boosterLimitLabel.Hide();
                 _boosterBustLabel.Show();
                 _animationPlayer.Play("BustModeAnimation");
+            }
+        }
+    }
+
+    private void _onSettingDialogHide()
+    {
+        // Menu close, disable mouse
+        Input.SetMouseMode(Input.MouseMode.Hidden);
+    }
+
+    public override void _Process(float delta)
+    {
+        if (Input.IsActionJustReleased("ui_setting"))
+        {
+            if (!_windowDialog.Visible)
+            {
+                // In menu, enable mouse
+                Input.SetMouseMode(Input.MouseMode.Visible);
+
+                _windowDialog.PopupCentered();
             }
         }
     }

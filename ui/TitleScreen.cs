@@ -9,6 +9,15 @@ public class TitleScreen : Control
     public override void _Ready()
     {
         _gameStates = (GameStates)GetNode("/root/GAMESTATES");
+
+        if(_gameStates.CurrentVehicleImplementation == GameStates.VehicleImplementation.KINEMATIC)
+        {
+            ((CheckBox)GetNode("SettingDialog/VehicleImplementation")).Pressed = false;
+        }
+        else
+        {
+            ((CheckBox)GetNode("SettingDialog/VehicleImplementation")).Pressed = true;
+        }
     }
 
     public void _onChangeVehicleImplementation(bool enable)
@@ -19,7 +28,7 @@ public class TitleScreen : Control
         }
         else
         {
-            _gameStates.CurrentVehicleImplementation = GameStates.VehicleImplementation.RIGIDBODY_ARCADE;
+            _gameStates.CurrentVehicleImplementation = GameStates.VehicleImplementation.KINEMATIC;
         }
     }
 

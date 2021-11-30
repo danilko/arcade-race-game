@@ -73,9 +73,9 @@ public class KinematicVehicle : KinematicBody
     private float _tractionFast = 0.02f;
 
     [Export]
-    private float _boostTime = 8.0f;
+    private float _boostTime = 5.0f;
     [Export]
-    private float _bustBoostTime = 3.0f;
+    private float _bustBoostTime = 2.0f;
     [Export]
     private float _boosterCount = 6;
 
@@ -103,8 +103,8 @@ public class KinematicVehicle : KinematicBody
     public override void _Ready()
     {
         _boostTimer = (Timer)GetNode("BoosterTimer");
-        _boostParticles1 = (Particles)GetNode("BoostParticles1");
-        _boostParticles2 = (Particles)GetNode("BoostParticles2");
+        _boostParticles1 = (Particles)GetNode("vehicle/BoostParticles1");
+        _boostParticles2 = (Particles)GetNode("vehicle/BoostParticles2");
         _boosterMode = BoosterMode.OFF;
 
         _lapTimer = (Timer)GetNode("LapTimer");
@@ -235,7 +235,6 @@ public class KinematicVehicle : KinematicBody
 
         _steerAngle = turn * Mathf.Deg2Rad(_steeringLimit);
 
-
         _acceleration = Vector3.Zero;
 
         if (Input.IsActionPressed("accelerate"))
@@ -290,24 +289,17 @@ public class KinematicVehicle : KinematicBody
             _updateTransformMode(_transformMode);
         }
 
-        float visualRotationFactor = 1.0f;
-        if (_transformMode == TransformMode.CIRCUIT)
-        {
-            visualRotationFactor = 1.5f;
-        }
-
-
         Vector3 rotation = ((MeshInstance)GetNode("vehicle/modelwheel1")).Rotation;
 
         // Not rotate forward during turn to simulate sliding
         if (turn != 0)
         {
             rotation.x = 0.0f;
-            rotation.y = _steerAngle * visualRotationFactor;
+            rotation.y = _steerAngle;
         }
         else
         {
-            rotation.x = rotation.x * visualRotationFactor;
+            rotation.x = rotation.x * 2.0f;
             rotation.y = 0.0f;
         }
 
@@ -322,19 +314,16 @@ public class KinematicVehicle : KinematicBody
         if (turn != 0)
         {
             rotation.x = 0.0f;
-            rotation.y = _steerAngle * visualRotationFactor;
+            rotation.y = _steerAngle;
         }
         else
         {
-            rotation.x = rotation.x * visualRotationFactor;
+            rotation.x = rotation.x * 2.0f;
             rotation.y = 0.0f;
         }
 
-
         ((MeshInstance)GetNode("vehicle/modelwheel0")).Rotation = rotation;
         ((MeshInstance)GetNode("vehicle/modelwheel01")).Rotation = rotation;
-
-
     }
     private void _applyFriction(float delta)
     {

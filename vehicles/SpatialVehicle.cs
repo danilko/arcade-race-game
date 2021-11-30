@@ -42,7 +42,7 @@ public class SpatialVehicle : Spatial
 
     [Export]
     // Where to place the car mesh relative to the sphere
-    private Vector3 _sphereoffset = new Vector3(0.0f, -0.6f, 0.0f);
+    private Vector3 _sphereoffset = new Vector3(0.0f, -1.75f, 0.0f);
     // Engine power
 
     [Export]
@@ -54,18 +54,20 @@ public class SpatialVehicle : Spatial
 
     [Export]
     // How quickly the car turns
-    private float _turnSpeed = 5.0f;
+    private float _turnSpeed = 3.0f;
 
     // Below this speed, the car doesn't turn
     [Export]
     float _turnStopLimit = 0.75f;
 
     [Export]
-    private float _boostTime = 8.0f;
+    private float _boostTime = 5.0f;
     [Export]
-    private float _bustBoostTime = 3.0f;
+    private float _bustBoostTime = 2.0f;
     [Export]
     private float _boosterCount = 6;
+    [Export]
+    private float _bodyTilt = 175.0f;
 
     private float _boostRemainTime;
     private Timer _boostTimer;
@@ -127,14 +129,14 @@ public class SpatialVehicle : Spatial
         if (transformMode == TransformMode.CIRCUIT)
         {
             vehicleAnimationPlayer.Play("transform");
-            _acceleration = 100.0f;
+            _acceleration = 150.0f;
             _steering = 21.0f;
         }
         else
         {
             vehicleAnimationPlayer.Play("bustbooster");
-            _acceleration = 150.0f;
-            _steering = 21.0f;
+            _acceleration = 180.0f;
+            _steering = 1.0f;
         }
 
         EmitSignal(nameof(UpdateTransformMode), _transformMode);
@@ -166,7 +168,7 @@ public class SpatialVehicle : Spatial
         _lapTimer.Start();
     }
 
-        private void _stopBooster()
+    private void _stopBooster()
     {
         _boostRemainTime = 0.0f;
         _updateBoostRemainTime();
@@ -175,7 +177,7 @@ public class SpatialVehicle : Spatial
     private void _startBooster()
     {
         // Only can enable booster if have remain
-        if(_boosterCount <= 0)
+        if (_boosterCount <= 0)
         {
             return;
         }
@@ -227,7 +229,13 @@ public class SpatialVehicle : Spatial
         }
     }
 
-
+    private Transform _alignWithY(Transform transform, Vector3 newY)
+    {
+        transform.basis.y = newY;
+        transform.basis.x = -transform.basis.z.Cross(newY);
+        transform.basis = transform.basis.Orthonormalized();
+        return transform;
+    }
 
     public void GetInput(float delta)
     {
@@ -281,6 +289,21 @@ public class SpatialVehicle : Spatial
             _updateTransformMode(_transformMode);
         }
 
+        // smoke?
+        float directionValue = _rigidBody.LinearVelocity.Normalized().Dot(-_vehicleModel.Transform.basis.z);
+        bool particleEmit = false;
+        if (_rigidBody.LinearVelocity.Length() > _turnStopLimit && directionValue < 0.9)
+        {
+            particleEmit = true;
+        }
+
+        ((Particles)_vehicleModel.GetNode("Particles0")).Emitting = particleEmit;
+        ((Particles)_vehicleModel.GetNode("Particles01")).Emitting = particleEmit;
+        ((Particles)_vehicleModel.GetNode("Particles1")).Emitting = particleEmit;
+        ((Particles)_vehicleModel.GetNode("Particles11")).Emitting = particleEmit;
+        ((Particles)_vehicleModel.GetNode("Particles2")).Emitting = particleEmit;
+        ((Particles)_vehicleModel.GetNode("Particles3")).Emitting = particleEmit;
+
         // rotate car mesh
         if (_rigidBody.LinearVelocity.Length() > _turnStopLimit)
         {
@@ -291,14 +314,19 @@ public class SpatialVehicle : Spatial
             _vehicleModel.Transform = transform;
 
             _vehicleModel.GlobalTransform = _vehicleModel.GlobalTransform.Orthonormalized();
+
+            // tilt body for effect
+            float tilt = -_rotateInput * 0.25f * _rigidBody.LinearVelocity.Length() / _bodyTilt;
+            Vector3 vehcileTiltRotation = _vehicleModel.Rotation;
+            vehcileTiltRotation.z = Mathf.Lerp(_vehicleModel.Rotation.z, tilt, 10 * delta);
+            _vehicleModel.Rotation = vehcileTiltRotation;
         }
 
+        // Tilt the car with slope
+        Vector3 normal = _groundRay.GetCollisionNormal();
+        Transform vehicleTransform = _alignWithY(_vehicleModel.GlobalTransform, normal.Normalized());
+        _vehicleModel.GlobalTransform = _vehicleModel.GlobalTransform.InterpolateWith(vehicleTransform, 10 * delta);
 
-        float visualRotationFactor = 1.0f;
-        if (_transformMode == TransformMode.CIRCUIT)
-        {
-            visualRotationFactor = 1.5f;
-        }
 
 
         Vector3 rotation = ((MeshInstance)GetNode("vehicle/modelwheel1")).Rotation;
@@ -307,11 +335,11 @@ public class SpatialVehicle : Spatial
         if (_rotateInput != 0)
         {
             rotation.x = 0.0f;
-            rotation.y = _rotateInput * visualRotationFactor;
+            rotation.y = _rotateInput;
         }
         else
         {
-            rotation.x = rotation.x * visualRotationFactor;
+            rotation.x = rotation.x * 2.0f;
             rotation.y = 0.0f;
         }
 
@@ -326,11 +354,11 @@ public class SpatialVehicle : Spatial
         if (_rotateInput != 0)
         {
             rotation.x = 0.0f;
-            rotation.y = _rotateInput * visualRotationFactor;
+            rotation.y = _rotateInput;
         }
         else
         {
-            rotation.x = rotation.x * visualRotationFactor;
+            rotation.x = rotation.x * 2.0f;
             rotation.y = 0.0f;
         }
 

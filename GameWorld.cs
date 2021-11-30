@@ -25,7 +25,7 @@ public class GameWorld : Spatial
     public void InitializeVehicle()
     {
         KinematicVehicle kinematicVehicle = (KinematicVehicle)((PackedScene)GD.Load("res://vehicles/KinematicVehicle.tscn")).Instance();
-        kinematicVehicle.Transform = ((Position3D)GetNode("vehiclePosition")).Transform;
+        kinematicVehicle.Transform = ((Position3D)GetNode("track_f1/vehiclePosition")).Transform;
         this.AddChild(kinematicVehicle);
 
         Camera camera = ((Camera)GetNode("Camera"));
@@ -40,11 +40,11 @@ public class GameWorld : Spatial
     public void InitializeSpatialVehicle()
     {
         SpatialVehicle spatialVehicle = (SpatialVehicle)((PackedScene)GD.Load("res://vehicles/SpatialVehicle.tscn")).Instance();
-        spatialVehicle.Transform = ((Position3D)GetNode("vehiclePosition")).Transform;
+        spatialVehicle.Transform = ((Position3D)GetNode("track_f1/vehiclePosition")).Transform;
         this.AddChild(spatialVehicle);
 
         Camera camera = ((Camera)GetNode("Camera"));
-        camera.Initialize((Spatial)spatialVehicle.GetNode("Position3D"));
+        camera.Initialize((Spatial)spatialVehicle.GetNode("vehicle"));
 
         HUD hud = ((HUD)GetNode("HUD"));
         hud.Initialize(spatialVehicle);
