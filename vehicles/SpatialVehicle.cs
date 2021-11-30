@@ -120,6 +120,7 @@ public class SpatialVehicle : Spatial
     public void Initialize()
     {
         _updateTransformMode(TransformMode.CIRCUIT);
+        EmitSignal(nameof(UpdateBoosterCount), _boosterCount);
     }
 
     private void _updateTransformMode(TransformMode transformMode)
