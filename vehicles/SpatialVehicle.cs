@@ -73,6 +73,9 @@ public class SpatialVehicle : Spatial
     private Timer _boostTimer;
     private Particles _boostParticles2;
     private Particles _boostParticles1;
+
+    private Particles _bustBoostParticles2;
+    private Particles _bustBoostParticles1;
     private BoosterMode _boosterMode;
 
     // Variables for input values
@@ -99,6 +102,8 @@ public class SpatialVehicle : Spatial
         _boostTimer = (Timer)GetNode("BoosterTimer");
         _boostParticles1 = (Particles)GetNode("vehicle/BoostParticles1");
         _boostParticles2 = (Particles)GetNode("vehicle/BoostParticles2");
+        _bustBoostParticles2 = (Particles)GetNode("vehicle/BustBoostParticles1");
+        _bustBoostParticles1 = (Particles)GetNode("vehicle/BustBoostParticles2");
         _boosterMode = BoosterMode.OFF;
 
         _lapTimer = (Timer)GetNode("LapTimer");
@@ -202,8 +207,8 @@ public class SpatialVehicle : Spatial
         _boosterMode = BoosterMode.BUST;
         _boostRemainTime = _bustBoostTime;
 
-        _boostParticles1.Emitting = true;
-        _boostParticles2.Emitting = true;
+        _bustBoostParticles1.Emitting = true;
+        _bustBoostParticles2.Emitting = true;
 
         EmitSignal(nameof(UpdateBoosterTimer), _boostRemainTime, _bustBoostTime, _boostTime, _boosterMode);
 
@@ -227,6 +232,8 @@ public class SpatialVehicle : Spatial
             _boosterMode = BoosterMode.OFF;
             _boostParticles1.Emitting = false;
             _boostParticles2.Emitting = false;
+            _bustBoostParticles1.Emitting = false;
+            _bustBoostParticles2.Emitting = false;
         }
     }
 
