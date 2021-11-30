@@ -68,4 +68,5 @@ The source/updated of the vehicle model is at [BlenderSwap](https://www.blendswa
 ### Source Code Reference
 Following are reference codes implementation and info
 
-[Kids can Code Assets from 3D Kinematic Car section](https://kidscancode.org/godot_recipes/3d/kinematic_car/)
+[Kids can Code Godot tutorials](https://kidscancode.org/godot_recipes/)
+[Miziziziz on Godot tutorials](https://www.youtube.com/watch?v=8ngg6ueC_ks)
