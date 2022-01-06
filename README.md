@@ -5,7 +5,7 @@ A concept to do an arcrade style game based on [Godot Engine](https://godotengin
 
 Game test examples in [Youtube](https://www.youtube.com/watch?v=Kbf3CsReQuk&list=PLlwvRbWsWmGU6t0heHGc8cjUApTA70hYl)
 
-[![Youtube Video Demo](https://i.ytimg.com/vi/Kbf3CsReQuk/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLDprTUAzW6ip6AvT50wrr9UHycpBw)](/screenshots/screenshot_0.png?raw=true "Screenshot 0")
+[![Youtube Video Demo](https://i.ytimg.com/vi/Kbf3CsReQuk/hqdefault.jpg?sqp=-oaymwEbCKgBEF5IVfKriqkDDggBFQAAiEIYAXABwAEG&rs=AOn4CLDprTUAzW6ip6AvT50wrr9UHycpBw)](https://www.youtube.com/watch?v=Kbf3CsReQuk&list=PLlwvRbWsWmGU6t0heHGc8cjUApTA70hYl)
 
 ## Build Downloads
 Builds for supported platforms can be downloaded below (Linux (Tested on Fedora 30) and Windows)
@@ -24,8 +24,8 @@ Builds for supported platforms can be downloaded below (Linux (Tested on Fedora 
 -- Circuit mode allow sharp turning with lower engine speed
 -- Aero mode allow higher engine speed with lower turn ability
 - Basic booster and extend logic
--- Initial phase booster allows 1.5x engine speed
--- Bust phase booster allows 3.0x engine speed
+-- Initial phase booster allows 1.2x engine speed
+-- Bust phase booster allows 1.4x engine speed
 - Basic time attack flow complete with three laps
 - Basic end to end flow
 
