@@ -2,12 +2,12 @@
 
 importer="scene"
 type="PackedScene"
-path="res://.import/vehicle.glb-1ded50a591f0bdc284eeec9abf4ad122.scn"
+path="res://.import/vehicle1.glb-ba5bd218b3488dea528b59b09058e3ce.scn"
 
 [deps]
 
-source_file="res://assets/vehicle/vehicle.glb"
-dest_files=[ "res://.import/vehicle.glb-1ded50a591f0bdc284eeec9abf4ad122.scn" ]
+source_file="res://assets/vehicle/vehicle1.glb"
+dest_files=[ "res://.import/vehicle1.glb-ba5bd218b3488dea528b59b09058e3ce.scn" ]
 
 [params]
 
@@ -21,7 +21,7 @@ materials/location=1
 materials/storage=1
 materials/keep_on_reimport=true
 meshes/octahedral_compression=true
-meshes/compress=true
+meshes/compress=4286
 meshes/ensure_tangents=true
 meshes/storage=0
 meshes/light_baking=0

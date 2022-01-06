@@ -31,7 +31,8 @@ public class SpatialVehicle : Spatial
     public enum TransformMode
     {
         CIRCUIT,
-        AERO
+        AERO,
+        AERO_BUST
     }
 
     private TransformMode _transformMode;
@@ -78,6 +79,11 @@ public class SpatialVehicle : Spatial
     private Particles _bustBoostParticles1;
     private BoosterMode _boosterMode;
 
+    private Position3D _boosterParticlePosition1;
+    private Position3D _boosterParticlePosition2;
+    private Position3D _boosterBustParticlePosition1;
+    private Position3D _boosterBustParticlePosition2;
+
     // Variables for input values
     float _speedInput = 0.0f;
     float _rotateInput = 0.0f;
@@ -104,6 +110,11 @@ public class SpatialVehicle : Spatial
         _boostParticles2 = (Particles)GetNode("vehicle/BoostParticles2");
         _bustBoostParticles2 = (Particles)GetNode("vehicle/BustBoostParticles1");
         _bustBoostParticles1 = (Particles)GetNode("vehicle/BustBoostParticles2");
+        _boosterParticlePosition1 = (Position3D)GetNode("vehicle/BoostParticles1Position");
+        _boosterParticlePosition2 = (Position3D)GetNode("vehicle/BoostParticles2Position");
+        _boosterBustParticlePosition1 = (Position3D)GetNode("vehicle/BoostBustParticles1Position");
+        _boosterBustParticlePosition2 = (Position3D)GetNode("vehicle/BoostBustParticles2Position");
+
         _boosterMode = BoosterMode.OFF;
 
         _lapTimer = (Timer)GetNode("LapTimer");
@@ -124,23 +135,43 @@ public class SpatialVehicle : Spatial
 
     public void Initialize()
     {
-        _updateTransformMode(TransformMode.CIRCUIT);
+        _updateTransformMode(TransformMode.CIRCUIT, TransformMode.CIRCUIT);
         EmitSignal(nameof(UpdateBoosterCount), _boosterCount);
     }
 
-    private void _updateTransformMode(TransformMode transformMode)
+    private void _updateTransformMode(TransformMode currentTransformMode, TransformMode previousTransformMode)
     {
-        _transformMode = transformMode;
+        _transformMode = currentTransformMode;
 
-        if (transformMode == TransformMode.CIRCUIT)
+        if (currentTransformMode == TransformMode.CIRCUIT)
         {
-            vehicleAnimationPlayer.Play("transform");
+            // Reverse the animation
+            vehicleAnimationPlayer.Play("transform", -1, -1f, true);
             _acceleration = 7000.0f;
             _steering = 21.0f;
         }
-        else
+        else if (currentTransformMode == TransformMode.AERO)
         {
-            vehicleAnimationPlayer.Play("bustbooster");
+            if (previousTransformMode == TransformMode.CIRCUIT)
+            {
+                // Play the animation
+                vehicleAnimationPlayer.Play("transform", -1, 1f, false);
+                _acceleration = 7350.0f;
+                _steering = 1.0f;
+            }
+            else if (previousTransformMode == TransformMode.AERO_BUST)
+            {
+                // Play the reverse animation
+                vehicleAnimationPlayer.Play("bustbooster", -1, -1f, true);
+                _acceleration = 7350.0f;
+                _steering = 1.0f;
+            }
+        }
+
+        else if (currentTransformMode == TransformMode.AERO_BUST)
+        {
+            // Play the animation
+            vehicleAnimationPlayer.Play("bustbooster", -1, 1f, false);
             _acceleration = 7350.0f;
             _steering = 1.0f;
         }
@@ -194,6 +225,9 @@ public class SpatialVehicle : Spatial
         _boosterMode = BoosterMode.ON;
         _boostRemainTime = _boostTime;
 
+        _boostParticles1.Transform = _boosterParticlePosition1.Transform;
+        _boostParticles2.Transform = _boosterParticlePosition2.Transform;
+
         _boostParticles1.Emitting = true;
         _boostParticles2.Emitting = true;
 
@@ -204,8 +238,17 @@ public class SpatialVehicle : Spatial
 
     private void _startBustBooster()
     {
+        // Force to set into areo mode
+        _updateTransformMode(TransformMode.AERO_BUST, _transformMode);
+
         _boosterMode = BoosterMode.BUST;
         _boostRemainTime = _bustBoostTime;
+
+        _boostParticles1.Transform = _boosterBustParticlePosition1.Transform;
+        _boostParticles2.Transform = _boosterBustParticlePosition2.Transform;
+
+        _boostParticles1.Emitting = true;
+        _boostParticles2.Emitting = true;
 
         _bustBoostParticles1.Emitting = true;
         _bustBoostParticles2.Emitting = true;
@@ -228,12 +271,17 @@ public class SpatialVehicle : Spatial
         }
         else
         {
+            _boostTimer.Stop();
+
             // Stop booster
             _boosterMode = BoosterMode.OFF;
             _boostParticles1.Emitting = false;
             _boostParticles2.Emitting = false;
             _bustBoostParticles1.Emitting = false;
             _bustBoostParticles2.Emitting = false;
+
+            // Force to set into areo mode
+            _updateTransformMode(TransformMode.AERO, _transformMode);
         }
     }
 
@@ -257,12 +305,12 @@ public class SpatialVehicle : Spatial
 
         if (_boosterMode == BoosterMode.ON)
         {
-            boosterAcceleration = 1.4f;
+            boosterAcceleration = 1.2f;
         }
 
         if (_boosterMode == BoosterMode.BUST)
         {
-            boosterAcceleration = 1.5f;
+            boosterAcceleration = 1.4f;
         }
 
         // Get accelerate/brake input
@@ -284,29 +332,32 @@ public class SpatialVehicle : Spatial
             {
                 _startBooster();
             }
-            else if (_boosterMode == BoosterMode.ON && _boostRemainTime <= _bustBoostTime)
-            {
-                _startBustBooster();
-            }
             else
             {
                 _stopBooster();
             }
         }
 
+        if (Input.IsActionJustPressed("bustbooster") && _boosterMode == BoosterMode.ON && _boostRemainTime <= _bustBoostTime)
+        {
+            _startBustBooster();
+        }
+
         // Only can transform if not in booster mode
         if (Input.IsActionJustReleased("transform") && _boosterMode == BoosterMode.OFF)
         {
+            TransformMode previousTransformMode = _transformMode;
+
             if (_transformMode == TransformMode.CIRCUIT)
             {
                 _transformMode = TransformMode.AERO;
             }
-            else
+            else if (_transformMode == TransformMode.AERO)
             {
                 _transformMode = TransformMode.CIRCUIT;
             }
 
-            _updateTransformMode(_transformMode);
+            _updateTransformMode(_transformMode, previousTransformMode);
         }
 
         // smoke?
