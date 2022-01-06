@@ -326,13 +326,13 @@ public class SpatialVehicle : Spatial
         _rotateInput *= Mathf.Deg2Rad(_steering);
 
         // Only can modify booster in aero mode
-        if (Input.IsActionJustReleased("booster") && _transformMode == TransformMode.AERO)
+        if (Input.IsActionJustReleased("booster"))
         {
-            if (_boosterMode == BoosterMode.OFF)
+            if (_transformMode == TransformMode.AERO && _boosterMode == BoosterMode.OFF)
             {
                 _startBooster();
             }
-            else
+            else if(_boosterMode != BoosterMode.OFF)
             {
                 _stopBooster();
             }
