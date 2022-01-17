@@ -52,6 +52,11 @@ public class EndGameScreen : Control
         label.Text = HUD.ConvertCentiSeconds(totalTime);
     }
 
+    private void _onSaveRecord()
+    {
+        _gameStates.SaveRecord();
+    }
+
     private void _updateLapTimerDisplay(float centiseconds, int lap, Label timer)
     {
         timer.Text = HUD.ConvertCentiSeconds(centiseconds) + " LAP " + HUD.FormatTwoDigits(lap);

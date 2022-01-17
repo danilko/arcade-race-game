@@ -18,6 +18,11 @@ public class TitleScreen : Control
         {
             ((CheckBox)GetNode("SettingDialog/VehicleImplementation")).Pressed = true;
         }
+
+        if(! _gameStates.CheckIfRecordExist())
+        {
+            ((Button)GetNode("NewGameGhost")).Visible = false;
+        }
     }
 
     public void _onChangeVehicleImplementation(bool enable)
@@ -34,6 +39,12 @@ public class TitleScreen : Control
 
     public void _onNewGame()
     {
+        _gameStates.EnterGame();
+    }
+
+    public void _onNewGameGhost()
+    {
+        _gameStates.SetGhostMode(true);
         _gameStates.EnterGame();
     }
 

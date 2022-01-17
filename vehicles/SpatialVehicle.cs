@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public class SpatialVehicle : Spatial
 {
@@ -27,6 +28,8 @@ public class SpatialVehicle : Spatial
 
     [Signal]
     public delegate void UpdateBoosterCount();
+
+    private GameStates _gameStates;
 
     public enum TransformMode
     {
@@ -94,7 +97,56 @@ public class SpatialVehicle : Spatial
     private float _lapTimeCounter;
     private Timer _lapTimer;
 
+    private Boolean _allowControl;
+
+    private Boolean _isGhostMode;
+    private List<KeyInput> _inMemoryKeyInput;
+
     private AnimationPlayer vehicleAnimationPlayer;
+
+    public class KeyInput
+    {
+        public Boolean Booster { get; set; }
+        public Boolean BurstBooster { get; set; }
+        public Boolean Transform { get; set; }
+        public float SpeedInput { get; set; }
+        public float RotateInput { get; set; }
+
+        public KeyInput()
+        {
+            Booster = false;
+            BurstBooster = false;
+            Transform = false;
+            SpeedInput = 0.0f;
+            RotateInput = 0.0f;
+        }
+
+        public KeyInput(String input)
+        {
+            int index = 0;
+
+            Booster = Boolean.Parse(input.Split(',')[index]);
+            index++;
+
+            BurstBooster = Boolean.Parse(input.Split(',')[index]);
+            index++;
+
+            Transform = Boolean.Parse(input.Split(',')[index]);
+            index++;
+
+            SpeedInput = float.Parse(input.Split(',')[index]);
+            index++;
+
+            RotateInput = float.Parse(input.Split(',')[index]);
+            index++;
+        }
+
+        public override String ToString()
+        {
+            return Booster + "," + BurstBooster + "," + Transform + "," + SpeedInput + "," + RotateInput;
+        }
+    }
+
 
     public enum BoosterMode
     {
@@ -105,6 +157,14 @@ public class SpatialVehicle : Spatial
 
     public override void _Ready()
     {
+        _isGhostMode = false;
+        _inMemoryKeyInput = null;
+
+        // Default vehicle will not allow to be controlled, until game is ready
+        _allowControl = false;
+
+        _gameStates = (GameStates)GetNode("/root/GAMESTATES");
+
         _boostTimer = (Timer)GetNode("BoosterTimer");
         _boostParticles1 = (Particles)GetNode("vehicle/BoostParticles1");
         _boostParticles2 = (Particles)GetNode("vehicle/BoostParticles2");
@@ -133,8 +193,23 @@ public class SpatialVehicle : Spatial
         cameraOrigin = (Position3D)GetNode("Position3D");
     }
 
-    public void Initialize()
+    public void AllowControl()
     {
+        _allowControl = true;
+    }
+
+    public void Initialize(Boolean isGhostMode)
+    {
+        _isGhostMode = isGhostMode;
+
+        if (_isGhostMode)
+        {
+
+            _inMemoryKeyInput = _gameStates.LoadRecord();
+            // Disable the vehicle collision between ghost and real vehicle
+            _rigidBody.SetCollisionLayerBit(1, false);
+        }
+
         _updateTransformMode(TransformMode.CIRCUIT, TransformMode.CIRCUIT);
         EmitSignal(nameof(UpdateBoosterCount), _boosterCount);
     }
@@ -146,7 +221,7 @@ public class SpatialVehicle : Spatial
         if (currentTransformMode == TransformMode.CIRCUIT)
         {
             // Reverse the animation
-            vehicleAnimationPlayer.Play("transform", -1, -1f, true);
+            vehicleAnimationPlayer.Play("transform", -1, -2f, true);
             _acceleration = 7000.0f;
             _steering = 21.0f;
         }
@@ -155,14 +230,14 @@ public class SpatialVehicle : Spatial
             if (previousTransformMode == TransformMode.CIRCUIT)
             {
                 // Play the animation
-                vehicleAnimationPlayer.Play("transform", -1, 1f, false);
+                vehicleAnimationPlayer.Play("transform", -1, 2f, false);
                 _acceleration = 7350.0f;
                 _steering = 1.0f;
             }
             else if (previousTransformMode == TransformMode.AERO_BUST)
             {
                 // Play the reverse animation
-                vehicleAnimationPlayer.Play("bustbooster", -1, -1f, true);
+                vehicleAnimationPlayer.Play("bustbooster", -1, -2f, true);
                 _acceleration = 7350.0f;
                 _steering = 1.0f;
             }
@@ -171,7 +246,7 @@ public class SpatialVehicle : Spatial
         else if (currentTransformMode == TransformMode.AERO_BUST)
         {
             // Play the animation
-            vehicleAnimationPlayer.Play("bustbooster", -1, 1f, false);
+            vehicleAnimationPlayer.Play("bustbooster", -1, 2f, false);
             _acceleration = 7350.0f;
             _steering = 1.0f;
         }
@@ -293,7 +368,58 @@ public class SpatialVehicle : Spatial
         return transform;
     }
 
-    public void GetInput(float delta)
+    protected virtual KeyInput GetInput()
+    {
+        if (_isGhostMode)
+        {
+            KeyInput keyInput = null;
+            if (_inMemoryKeyInput.Count > 0)
+            {
+
+                keyInput = _inMemoryKeyInput[0];
+                _inMemoryKeyInput.RemoveAt(0);
+
+            }
+            // brake
+            else {
+                keyInput = new KeyInput();
+            }
+            return keyInput;
+        }
+
+        KeyInput currentKeyInput = new KeyInput();
+
+        if (Input.IsActionJustPressed("booster"))
+        {
+            currentKeyInput.Booster = true;
+        }
+
+        if (Input.IsActionJustPressed("bustbooster"))
+        {
+            currentKeyInput.BurstBooster = true;
+        }
+
+        if (Input.IsActionJustPressed("transform"))
+        {
+            currentKeyInput.Transform = true;
+        }
+
+        // Get accelerate/brake input
+        currentKeyInput.SpeedInput = 0.0f;
+        currentKeyInput.SpeedInput += Input.GetActionStrength("accelerate");
+        currentKeyInput.SpeedInput -= Input.GetActionStrength("brake");
+
+        // Get steering input
+        currentKeyInput.RotateInput = 0.0f;
+        currentKeyInput.RotateInput += Input.GetActionStrength("steer_left");
+        currentKeyInput.RotateInput -= Input.GetActionStrength("steer_right");
+
+        _gameStates.PushKey(currentKeyInput);
+
+        return currentKeyInput;
+    }
+
+    private void _applyInput(float delta, KeyInput currentKeyInput)
     {
         //Can't steer/accelerate when in the air
         if (!_groundRay.IsColliding())
@@ -314,37 +440,33 @@ public class SpatialVehicle : Spatial
         }
 
         // Get accelerate/brake input
-        _speedInput = 0.0f;
-        _speedInput += Input.GetActionStrength("accelerate");
-        _speedInput -= Input.GetActionStrength("brake");
+        _speedInput = currentKeyInput.SpeedInput;
         _speedInput *= _acceleration * boosterAcceleration;
 
         // Get steering input
-        _rotateInput = 0.0f;
-        _rotateInput += Input.GetActionStrength("steer_left");
-        _rotateInput -= Input.GetActionStrength("steer_right");
+        _rotateInput = currentKeyInput.RotateInput;
         _rotateInput *= Mathf.Deg2Rad(_steering);
 
         // Only can modify booster in aero mode
-        if (Input.IsActionJustReleased("booster"))
+        if (currentKeyInput.Booster)
         {
             if (_transformMode == TransformMode.AERO && _boosterMode == BoosterMode.OFF)
             {
                 _startBooster();
             }
-            else if(_boosterMode != BoosterMode.OFF)
+            else if (_boosterMode != BoosterMode.OFF)
             {
                 _stopBooster();
             }
         }
 
-        if (Input.IsActionJustPressed("bustbooster") && _boosterMode == BoosterMode.ON && _boostRemainTime <= _bustBoostTime)
+        if (currentKeyInput.BurstBooster && _boosterMode == BoosterMode.ON && _boostRemainTime <= _bustBoostTime)
         {
             _startBustBooster();
         }
 
         // Only can transform if not in booster mode
-        if (Input.IsActionJustReleased("transform") && _boosterMode == BoosterMode.OFF)
+        if (currentKeyInput.Transform && _boosterMode == BoosterMode.OFF)
         {
             TransformMode previousTransformMode = _transformMode;
 
@@ -398,8 +520,6 @@ public class SpatialVehicle : Spatial
         Transform vehicleTransform = _alignWithY(_vehicleModel.GlobalTransform, normal.Normalized());
         _vehicleModel.GlobalTransform = _vehicleModel.GlobalTransform.InterpolateWith(vehicleTransform, 10 * delta);
 
-
-
         Vector3 rotation = ((MeshInstance)GetNode("vehicle/modelwheel1")).Rotation;
 
         // Not rotate forward during turn to simulate sliding
@@ -443,7 +563,11 @@ public class SpatialVehicle : Spatial
 
     public override void _PhysicsProcess(float delta)
     {
-        GetInput(delta);
+        if (_allowControl)
+        {
+            KeyInput keyInput = GetInput();
+            _applyInput(delta, keyInput);
+        }
 
         // Keep the car mesh aligned with the sphere
         Transform transform = _vehicleModel.Transform;
