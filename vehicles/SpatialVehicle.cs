@@ -104,6 +104,12 @@ public class SpatialVehicle : Spatial
 
     private AnimationPlayer vehicleAnimationPlayer;
 
+    // Used to control the backlight/rim-backlight
+    private SpatialMaterial _backlight;
+    private SpatialMaterial _rimBacklight;
+
+    private Color _BacklightOnColor = new Color(1f, 0f, 0f, 1f);
+    private Color _BacklightOffColor = new Color(0f, 0f, 0f, 1f);
     public class KeyInput
     {
         public Boolean Booster { get; set; }
@@ -202,12 +208,76 @@ public class SpatialVehicle : Spatial
     {
         _isGhostMode = isGhostMode;
 
+        // Need to duplicate material, otherwise will cause the material to be reset for all vehicle
+        // For chasis
+        // Get this origin mash material to only apply to this current instanced mesh to not impact others
+        int materialIndex = 1;
+        _backlight = (SpatialMaterial)((MeshInstance)_vehicleModel.GetNode("armcar/Skeleton/modelvehicle")).Mesh.SurfaceGetMaterial(materialIndex).Duplicate();
+        // Set this current mesh (not the origin origin) to only apply to this current instanced mesh to not impact others
+        ((MeshInstance)_vehicleModel.GetNode("armcar/Skeleton/modelvehicle")).SetSurfaceMaterial(materialIndex, _backlight);
+
+        // For wheels backlight
+        materialIndex = 2;
+        _rimBacklight = (SpatialMaterial)((MeshInstance)_vehicleModel.GetNode("modelwheel1")).Mesh.SurfaceGetMaterial(materialIndex).Duplicate();
+        ((MeshInstance)_vehicleModel.GetNode("modelwheel1")).SetSurfaceMaterial(materialIndex, _rimBacklight);
+        ((MeshInstance)_vehicleModel.GetNode("modelwheel11")).SetSurfaceMaterial(materialIndex, _rimBacklight);
+        ((MeshInstance)_vehicleModel.GetNode("modelwheel0")).SetSurfaceMaterial(materialIndex, _rimBacklight);
+        ((MeshInstance)_vehicleModel.GetNode("modelwheel01")).SetSurfaceMaterial(materialIndex, _rimBacklight);
+        ((MeshInstance)_vehicleModel.GetNode("modelwheel3")).SetSurfaceMaterial(materialIndex, _rimBacklight);
+        ((MeshInstance)_vehicleModel.GetNode("modelwheel2")).SetSurfaceMaterial(materialIndex, _rimBacklight);
+
+        // Enable emission as this will be used as backlight
+        _backlight.EmissionEnabled = true;
+         _rimBacklight.EmissionEnabled = true;
+
         if (_isGhostMode)
         {
-
             _inMemoryKeyInput = _gameStates.LoadRecord();
             // Disable the vehicle collision between ghost and real vehicle
             _rigidBody.SetCollisionLayerBit(1, false);
+
+            // Set the transparency
+            // Need to duplicate material, otherwise will cause the material to be reset for all vehicle
+            // For chasis
+            // Get this origin mash material to only apply to this current instanced mesh to not impact others
+            materialIndex = 0;
+            SpatialMaterial material = (SpatialMaterial)((MeshInstance)_vehicleModel.GetNode("armcar/Skeleton/modelvehicle")).Mesh.SurfaceGetMaterial(materialIndex).Duplicate();
+            material.FlagsTransparent = true;
+            // Set the transparency
+            Color color = material.AlbedoColor;
+            color.a = 0.2f;
+            material.AlbedoColor = color;
+            // Set this current mesh (not the origin origin) to only apply to this current instanced mesh to not impact others
+            ((MeshInstance)_vehicleModel.GetNode("armcar/Skeleton/modelvehicle")).SetSurfaceMaterial(materialIndex, material);
+
+            // For wheels
+            // Need to do for both rim and tire
+            for (int index = 0; index < 2; index++)
+            {
+                materialIndex = index;
+                material = (SpatialMaterial)((MeshInstance)_vehicleModel.GetNode("modelwheel1")).Mesh.SurfaceGetMaterial(materialIndex).Duplicate();
+                material.FlagsTransparent = true;
+                // Set the transparency
+                color = material.AlbedoColor;
+                color.a = 0.2f;
+                material.AlbedoColor = color;
+
+                ((MeshInstance)_vehicleModel.GetNode("modelwheel1")).SetSurfaceMaterial(materialIndex, material);
+                ((MeshInstance)_vehicleModel.GetNode("modelwheel11")).SetSurfaceMaterial(materialIndex, material);
+                ((MeshInstance)_vehicleModel.GetNode("modelwheel0")).SetSurfaceMaterial(materialIndex, material);
+                ((MeshInstance)_vehicleModel.GetNode("modelwheel01")).SetSurfaceMaterial(materialIndex, material);
+                ((MeshInstance)_vehicleModel.GetNode("modelwheel3")).SetSurfaceMaterial(materialIndex, material);
+                ((MeshInstance)_vehicleModel.GetNode("modelwheel2")).SetSurfaceMaterial(materialIndex, material);
+            }
+
+            // For backlight material also 
+            color = _backlight.AlbedoColor;
+            color.a = 0.2f;
+            _backlight.AlbedoColor = color;
+
+            color = _rimBacklight.AlbedoColor;
+            color.a = 0.2f;
+            _rimBacklight.AlbedoColor = color;
         }
 
         _updateTransformMode(TransformMode.CIRCUIT, TransformMode.CIRCUIT);
@@ -381,7 +451,8 @@ public class SpatialVehicle : Spatial
 
             }
             // brake
-            else {
+            else
+            {
                 keyInput = new KeyInput();
             }
             return keyInput;
@@ -443,6 +514,34 @@ public class SpatialVehicle : Spatial
         _speedInput = currentKeyInput.SpeedInput;
         _speedInput *= _acceleration * boosterAcceleration;
 
+        Boolean backlightOn = false;
+        if (_speedInput < 0)
+        {
+backlightOn = true;
+        }
+
+        // Set the backlight on
+        if (backlightOn)
+        {
+            // Set to high energy
+            _backlight.EmissionEnergy = 16;
+            _rimBacklight.EmissionEnergy = 16;
+            // Set to red
+            _backlight.Emission = _BacklightOnColor;
+            _rimBacklight.Emission = _BacklightOnColor;
+
+        }
+        else
+        {
+            // Set to high energy
+            _backlight.EmissionEnergy = 1;
+            _rimBacklight.EmissionEnergy = 1;
+            // Set to red
+            _backlight.Emission = _BacklightOffColor;
+            _rimBacklight.Emission = _BacklightOffColor;
+        }
+
+
         // Get steering input
         _rotateInput = currentKeyInput.RotateInput;
         _rotateInput *= Mathf.Deg2Rad(_steering);
@@ -496,6 +595,15 @@ public class SpatialVehicle : Spatial
         ((Particles)_vehicleModel.GetNode("Particles11")).Emitting = particleEmit;
         ((Particles)_vehicleModel.GetNode("Particles2")).Emitting = particleEmit;
         ((Particles)_vehicleModel.GetNode("Particles3")).Emitting = particleEmit;
+
+        // If it is sliding but not backward, enable rim light only
+        if(particleEmit && !backlightOn)
+        {
+            // Set to high energy
+            _rimBacklight.EmissionEnergy = 16;
+            // Set to red
+            _rimBacklight.Emission = _BacklightOnColor;
+        }
 
         // rotate car mesh
         if (_rigidBody.LinearVelocity.Length() > _turnStopLimit)
