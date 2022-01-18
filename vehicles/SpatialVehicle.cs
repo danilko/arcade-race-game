@@ -228,7 +228,7 @@ public class SpatialVehicle : Spatial
 
         // Enable emission as this will be used as backlight
         _backlight.EmissionEnabled = true;
-         _rimBacklight.EmissionEnabled = true;
+        _rimBacklight.EmissionEnabled = true;
 
         if (_isGhostMode)
         {
@@ -448,7 +448,6 @@ public class SpatialVehicle : Spatial
 
                 keyInput = _inMemoryKeyInput[0];
                 _inMemoryKeyInput.RemoveAt(0);
-
             }
             // brake
             else
@@ -517,7 +516,7 @@ public class SpatialVehicle : Spatial
         Boolean backlightOn = false;
         if (_speedInput < 0)
         {
-backlightOn = true;
+            backlightOn = true;
         }
 
         // Set the backlight on
@@ -597,7 +596,7 @@ backlightOn = true;
         ((Particles)_vehicleModel.GetNode("Particles3")).Emitting = particleEmit;
 
         // If it is sliding but not backward, enable rim light only
-        if(particleEmit && !backlightOn)
+        if (particleEmit && !backlightOn)
         {
             // Set to high energy
             _rimBacklight.EmissionEnergy = 16;
@@ -685,7 +684,7 @@ backlightOn = true;
 
         // Accelerate based on car's forward direction
         _rigidBody.AddCentralForce(-_vehicleModel.GlobalTransform.basis.z * _speedInput);
-
+        
         cameraOrigin.GlobalTransform = _vehicleModel.GlobalTransform;
 
     }

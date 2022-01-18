@@ -31,6 +31,9 @@ public class HUD : Control
 
     private WindowDialog _windowDialog;
 
+    private Label _startTimerCounter;
+    private Timer _startTimerCounterFadeTimer;
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -62,9 +65,10 @@ public class HUD : Control
 
         _transformMode = (Label)GetNode("TransformMode");
 
-
         _windowDialog = (WindowDialog)GetNode("SettingDialog");
 
+        _startTimerCounter = (Label)GetNode("StartTimerCounter");
+        _startTimerCounterFadeTimer = (Timer)GetNode("StartTimerCounterFadeTimer");
     }
 
     public void Initialize(KinematicVehicle vehicle)
@@ -77,7 +81,7 @@ public class HUD : Control
         vehicle.Connect(nameof(KinematicVehicle.UpdateTransformMode), this, nameof(_updateTransformModeDisplay));
     }
 
-    public void Initialize(SpatialVehicle vehicle)
+    public void Initialize(GameWorld gameWorld, SpatialVehicle vehicle)
     {
         vehicle.Connect(nameof(SpatialVehicle.CompleteLapTimer), this, nameof(_updateBestLapTimerDisplay));
         vehicle.Connect(nameof(SpatialVehicle.UpdateBoosterTimer), this, nameof(_updateBoosterTImerDisplay));
@@ -85,6 +89,29 @@ public class HUD : Control
         vehicle.Connect(nameof(SpatialVehicle.UpdateBoosterCount), this, nameof(_updateBoosterCountDisplay));
         vehicle.Connect(nameof(SpatialVehicle.UpdateSpeed), this, nameof(_updateVelocityDisplay));
         vehicle.Connect(nameof(SpatialVehicle.UpdateTransformMode), this, nameof(_updateTransformModeDisplay));
+
+        // Update the start timer signal with HUD
+        gameWorld.Connect(nameof(GameWorld.StartTimerChange), this, nameof(_showStartTimerCountDown));
+    }
+
+    public void _showStartTimerCountDown(int counter)
+    {
+        String resultText = "" + counter;
+        
+        if(counter == 0)
+        {
+            // Set text to GO when counter reaches 0
+            resultText = "GO";
+        }
+
+        _startTimerCounter.Text = resultText;
+        _startTimerCounter.Visible = true;
+        _startTimerCounterFadeTimer.Start();
+    }
+
+    public void _onStartTimerCounterFade()
+    {
+        _startTimerCounter.Visible = false;
     }
 
     private void _updateTransformModeDisplay(KinematicVehicle.TransformMode transformMode)
