@@ -5,9 +5,13 @@ public class EndGameScreen : Control
 {
     private GameStates _gameStates;
 
+    private Popup _recordSavedConfirmation;
+
     public override void _Ready()
     {
         _gameStates = (GameStates)GetNode("/root/GAMESTATES");
+
+        _recordSavedConfirmation = (Popup)GetNode("RecordSavedConfirmation");
         _computeResult();
     }
 
@@ -55,6 +59,14 @@ public class EndGameScreen : Control
     private void _onSaveRecord()
     {
         _gameStates.SaveRecord();
+
+        _recordSavedConfirmation.Show();
+        _recordSavedConfirmation.FocusMode = FocusModeEnum.All;
+    }
+
+    private void _onRecordSavedConfirm()
+    {
+        _recordSavedConfirmation.Hide();
     }
 
     private void _updateLapTimerDisplay(float centiseconds, int lap, Label timer)

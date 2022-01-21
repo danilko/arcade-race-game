@@ -91,16 +91,13 @@ public class SpatialVehicle : Spatial
     float _speedInput = 0.0f;
     float _rotateInput = 0.0f;
 
-    Position3D cameraOrigin;
-
     private int _lapCounter;
     private float _lapTimeCounter;
     private Timer _lapTimer;
 
     private Boolean _allowControl;
 
-    private Boolean _isGhostMode;
-    private List<KeyInput> _inMemoryKeyInput;
+    private List<VehicleState> _inMemoryVehicleState;
 
     private AnimationPlayer vehicleAnimationPlayer;
 
@@ -153,6 +150,55 @@ public class SpatialVehicle : Spatial
         }
     }
 
+    public class VehicleState
+    {
+        public Vector3 RigidBodyOrigin { get; set; }
+        public Vector3 RigidBodyLinearVelocity { get; set; }
+        public KeyInput KeyInput { get; set; }
+
+        public VehicleState()
+        {
+            RigidBodyOrigin = Vector3.Zero;
+            RigidBodyLinearVelocity = Vector3.Zero;
+            KeyInput = new KeyInput();
+        }
+
+        public VehicleState(String input)
+        {
+            KeyInput = new KeyInput(input);
+
+            // This is base on KeyInput's index usage, may need better way to handle in future
+            int index = 5;
+
+            float x = float.Parse(input.Split(',')[index]);
+            index++;
+
+            float y = float.Parse(input.Split(',')[index]);
+            index++;
+
+            float z = float.Parse(input.Split(',')[index]);
+            index++;
+
+            RigidBodyOrigin = new Vector3(x, y, z);
+
+            x = float.Parse(input.Split(',')[index]);
+            index++;
+
+            y = float.Parse(input.Split(',')[index]);
+            index++;
+
+            z = float.Parse(input.Split(',')[index]);
+            index++;
+
+            RigidBodyLinearVelocity = new Vector3(x, y, z);
+        }
+
+        public override String ToString()
+        {
+            return KeyInput.ToString() + "," + RigidBodyOrigin.x + "," + RigidBodyOrigin.y + "," + RigidBodyOrigin.z + "," + RigidBodyLinearVelocity.x + "," + RigidBodyLinearVelocity.y + "," + RigidBodyLinearVelocity.z;
+        }
+    }
+
 
     public enum BoosterMode
     {
@@ -163,8 +209,7 @@ public class SpatialVehicle : Spatial
 
     public override void _Ready()
     {
-        _isGhostMode = false;
-        _inMemoryKeyInput = null;
+        _inMemoryVehicleState = null;
 
         // Default vehicle will not allow to be controlled, until game is ready
         _allowControl = false;
@@ -195,8 +240,6 @@ public class SpatialVehicle : Spatial
 
         // Raycast to not collide with rigidBody
         _groundRay.AddException(_rigidBody);
-
-        cameraOrigin = (Position3D)GetNode("Position3D");
     }
 
     public void AllowControl()
@@ -206,8 +249,6 @@ public class SpatialVehicle : Spatial
 
     public void Initialize(Boolean isGhostMode)
     {
-        _isGhostMode = isGhostMode;
-
         // Need to duplicate material, otherwise will cause the material to be reset for all vehicle
         // For chasis
         // Get this origin mash material to only apply to this current instanced mesh to not impact others
@@ -230,9 +271,9 @@ public class SpatialVehicle : Spatial
         _backlight.EmissionEnabled = true;
         _rimBacklight.EmissionEnabled = true;
 
-        if (_isGhostMode)
+        if (isGhostMode)
         {
-            _inMemoryKeyInput = _gameStates.LoadRecord();
+            _inMemoryVehicleState = _gameStates.LoadRecord();
             // Disable the vehicle collision between ghost and real vehicle
             _rigidBody.SetCollisionLayerBit(1, false);
 
@@ -440,23 +481,6 @@ public class SpatialVehicle : Spatial
 
     protected virtual KeyInput GetInput()
     {
-        if (_isGhostMode)
-        {
-            KeyInput keyInput = null;
-            if (_inMemoryKeyInput.Count > 0)
-            {
-
-                keyInput = _inMemoryKeyInput[0];
-                _inMemoryKeyInput.RemoveAt(0);
-            }
-            // brake
-            else
-            {
-                keyInput = new KeyInput();
-            }
-            return keyInput;
-        }
-
         KeyInput currentKeyInput = new KeyInput();
 
         if (Input.IsActionJustPressed("booster"))
@@ -483,8 +507,6 @@ public class SpatialVehicle : Spatial
         currentKeyInput.RotateInput = 0.0f;
         currentKeyInput.RotateInput += Input.GetActionStrength("steer_left");
         currentKeyInput.RotateInput -= Input.GetActionStrength("steer_right");
-
-        _gameStates.PushKey(currentKeyInput);
 
         return currentKeyInput;
     }
@@ -644,8 +666,6 @@ public class SpatialVehicle : Spatial
         ((MeshInstance)GetNode("vehicle/modelwheel1")).Rotation = rotation;
         ((MeshInstance)GetNode("vehicle/modelwheel11")).Rotation = rotation;
 
-        EmitSignal(nameof(UpdateRotation), rotation.z);
-
         rotation = ((MeshInstance)GetNode("vehicle/modelwheel0")).Rotation;
 
         // Not rotate forward during turn to simulate sliding
@@ -665,14 +685,48 @@ public class SpatialVehicle : Spatial
         ((MeshInstance)GetNode("vehicle/modelwheel01")).Rotation = rotation;
 
 
-        EmitSignal(nameof(UpdateSpeed), (int)(_rigidBody.LinearVelocity.Length()));
     }
 
     public override void _PhysicsProcess(float delta)
     {
         if (_allowControl)
         {
-            KeyInput keyInput = GetInput();
+            KeyInput keyInput = null;
+
+            if (_inMemoryVehicleState != null)
+            {
+                keyInput = null;
+
+                if (_inMemoryVehicleState.Count > 0)
+                {
+                    VehicleState vehicleState = _inMemoryVehicleState[0];
+                    _inMemoryVehicleState.RemoveAt(0);
+
+                    // Apply the initial state, so this frame will be setup to be same as the state when recorded happen
+                    keyInput = vehicleState.KeyInput;
+                    _rigidBody.LinearVelocity = vehicleState.RigidBodyLinearVelocity;
+                    Transform tempTransform = _rigidBody.Transform;
+                    tempTransform.origin = vehicleState.RigidBodyOrigin;
+                    _rigidBody.Transform = tempTransform;
+                }
+                // brake
+                else
+                {
+                    keyInput = new KeyInput();
+                }
+            }
+            else
+            {
+                keyInput = GetInput();
+
+                VehicleState vehicleState = new VehicleState();
+                vehicleState.KeyInput = keyInput;
+                vehicleState.RigidBodyLinearVelocity = _rigidBody.LinearVelocity;
+                vehicleState.RigidBodyOrigin = _rigidBody.Transform.origin;
+
+                _gameStates.PushVehicleState(vehicleState);
+            }
+
             _applyInput(delta, keyInput);
         }
 
@@ -684,8 +738,8 @@ public class SpatialVehicle : Spatial
 
         // Accelerate based on car's forward direction
         _rigidBody.AddCentralForce(-_vehicleModel.GlobalTransform.basis.z * _speedInput);
-        
-        cameraOrigin.GlobalTransform = _vehicleModel.GlobalTransform;
 
+        // Apply the speed
+        EmitSignal(nameof(UpdateSpeed), (int)(_rigidBody.LinearVelocity.Length()));
     }
 }

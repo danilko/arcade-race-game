@@ -10,7 +10,7 @@ public class GameStates : Node
 
     public String[] levels = { "res://ui/TitleScreen.tscn", "res://GameWorld.tscn" };
 
-    public List<SpatialVehicle.KeyInput> current_memory = new List<SpatialVehicle.KeyInput>();
+    public List<SpatialVehicle.VehicleState> current_memory = new List<SpatialVehicle.VehicleState>();
 
     public String endResultScreen = "res://ui/EndGameScreen.tscn";
 
@@ -26,9 +26,9 @@ public class GameStates : Node
 
     private int _totalLap = 3;
 
-    public void PushKey(SpatialVehicle.KeyInput keyInput)
+    public void PushVehicleState(SpatialVehicle.VehicleState vehicleState)
     {
-        current_memory.Add(keyInput);
+        current_memory.Add(vehicleState);
     }
 
     public Boolean GetGhostMode()
@@ -106,10 +106,11 @@ public class GameStates : Node
 
         int counter = 0;
 
-        foreach (SpatialVehicle.KeyInput keyInput in current_memory)
+        foreach (SpatialVehicle.VehicleState vehicleState in current_memory)
         {
+
             // Store the save dictionary as a new line in the save file.
-            saveGame.StoreLine(keyInput.ToString());
+            saveGame.StoreLine(vehicleState.ToString());
             counter++;
         }
 
@@ -117,9 +118,9 @@ public class GameStates : Node
     }
 
     // Save the running game record
-    public List<SpatialVehicle.KeyInput> LoadRecord()
+    public List<SpatialVehicle.VehicleState> LoadRecord()
     {
-        List<SpatialVehicle.KeyInput> loaded_memory = new List<SpatialVehicle.KeyInput>();
+        List<SpatialVehicle.VehicleState> loaded_memory = new List<SpatialVehicle.VehicleState>();
 
         var saveGame = new File();
         saveGame.Open("user://record.save", File.ModeFlags.Read);
@@ -129,9 +130,9 @@ public class GameStates : Node
             // Loaded each line from the save file.
             String input = saveGame.GetLine();
             // Use contrustor to create out
-            SpatialVehicle.KeyInput tempInput = new SpatialVehicle.KeyInput(input);
+            SpatialVehicle.VehicleState temp = new SpatialVehicle.VehicleState(input);
 
-            loaded_memory.Add(tempInput);
+            loaded_memory.Add(temp);
                    counter++;
         }
 
