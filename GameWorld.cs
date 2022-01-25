@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 
 public class GameWorld : Spatial
@@ -17,7 +18,18 @@ public class GameWorld : Spatial
 
     private Timer _startTimer;
 
-    private Spatial _track;
+    private Track _track;
+
+    private HUD _hud;
+
+    public class VehiclePosition
+    {
+        public float Length = 0;
+
+        public int CheckPointsCount = 0;
+
+        public String Name;
+    }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -27,11 +39,13 @@ public class GameWorld : Spatial
         _startTimerCounter = _initialStartTimerTime + 1;
         vehicles = new List<SpatialVehicle>();
         _gameStates = (GameStates)GetNode("/root/GAMESTATES");
-        _track = (Spatial)GetNode("track_f1");
+        _track = (Track)GetNode("track_f1");
     }
 
     public void _onReady()
     {
+        _track.Initialize();
+
         if (_gameStates.CurrentVehicleImplementation == GameStates.VehicleImplementation.KINEMATIC)
         {
             InitializeVehicle();
@@ -41,6 +55,7 @@ public class GameWorld : Spatial
             InitializeSpatialVehicle();
         }
     }
+
 
     public void InitializeVehicle()
     {
@@ -76,8 +91,8 @@ public class GameWorld : Spatial
         Camera camera = ((Camera)GetNode("Camera"));
         camera.Initialize((Spatial)spatialVehicle.GetNode("vehicle"));
 
-        HUD hud = ((HUD)GetNode("HUD"));
-        hud.Initialize(this, spatialVehicle);
+        _hud = ((HUD)GetNode("HUD"));
+        _hud.Initialize(this, spatialVehicle);
 
         spatialVehicle.Initialize(false);
         vehicles.Add(spatialVehicle);
@@ -95,7 +110,7 @@ public class GameWorld : Spatial
         }
 
         // Initialize minimap after all vehicles are loaded, need to clean up so may able to load at same time as HUD instead of separate logic
-        hud.GetMiniMap().Iniitialize(this);
+        _hud.GetMiniMap().Iniitialize(this);
 
         // Start count down timer
         _startTimer.Start();
@@ -121,9 +136,48 @@ public class GameWorld : Spatial
 
     }
 
+    private void _checkPosition()
+    {
+        List<VehiclePosition> positions = new List<VehiclePosition>();
+
+        foreach (SpatialVehicle vehicle in vehicles)
+        {
+            VehiclePosition vehiclePosition = new VehiclePosition();
+            vehiclePosition.Name = vehicle.Name;
+
+            int currentCheckPoint = vehicle.GetCheckPointIndex();
+
+            if (vehicle.GetCheckPointIndex() == -1)
+            {
+                currentCheckPoint = 0;
+            }
+
+            int nextCheckPoint = vehicle.GetCheckPointIndex() + 1;
+
+            if (nextCheckPoint >= _track.GetCheckPoints().Count)
+            {
+                nextCheckPoint = 0;
+            }
+
+            vehiclePosition.CheckPointsCount = (vehicle.GetLaps() * _track.GetCheckPoints().Count) + currentCheckPoint;
+
+            vehiclePosition.Length = vehicle.GetVehicleGlobalTransform().origin.DistanceTo(_track.GetCheckPoints()[nextCheckPoint].GlobalTransform.origin);
+
+            positions.Add(vehiclePosition);
+        }
+
+        // If a checkpoints are less than b checkpoints, it means a travel less than b, so need to do 1, as a is sort after b
+        // Else if a/b checkpoint are same or greater
+        // If a is greater than b checkpoint count, return -1 as a is indeed before b
+        // If checkpoint is same, then a.length > b.length (greater length means further away from next checkpoint), a will be after b, as it is further, so return 1, otherwise return -1
+        positions.Sort((a, b) => ((a.CheckPointsCount < b.CheckPointsCount)?1:((a.CheckPointsCount > b.CheckPointsCount)?-1:((a.Length > b.Length)?1:-1))));
+        _hud.UpdateVehiclePositions(positions);
+
+    }
+
     //  // Called every frame. 'delta' is the elapsed time since the previous frame.
-    //  public override void _Process(float delta)
-    //  {
-    //      
-    //  }
+    public override void _Process(float delta)
+    {
+        _checkPosition();
+    }
 }

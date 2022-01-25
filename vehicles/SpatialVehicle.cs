@@ -78,7 +78,6 @@ public class SpatialVehicle : Spatial
     [Export]
     private float _busterboosterAccelerationFactor = 1.5f;
     
-
     private float _boostRemainTime;
     private Timer _boostTimer;
     private Particles _boostParticles2;
@@ -100,6 +99,8 @@ public class SpatialVehicle : Spatial
     private int _lapCounter;
     private float _lapTimeCounter;
     private Timer _lapTimer;
+
+    private int _currentCheckPointIndex;
 
     private Boolean _allowControl;
 
@@ -253,8 +254,32 @@ public class SpatialVehicle : Spatial
         _allowControl = true;
     }
 
+    public int GetLaps()
+    {
+        return _lapCounter;
+    }
+
+
+    public void SetCheckPointIndex(int checkpointIndex)
+    {
+        _currentCheckPointIndex = checkpointIndex;
+    }
+
+    public int GetCheckPointIndex()
+    {
+        return _currentCheckPointIndex;
+    }
+
+    public void NotifyInvalidCheckPoint()
+    {
+
+    }
+
     public void Initialize(Boolean isGhostMode)
     {
+        // Initial check point is -1 to indicate a not exist index
+        _currentCheckPointIndex = -1;
+
         // Need to duplicate material, otherwise will cause the material to be reset for all vehicle
         // For chasis
         // Get this origin mash material to only apply to this current instanced mesh to not impact others

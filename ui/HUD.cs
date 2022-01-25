@@ -38,6 +38,11 @@ public class HUD : Control
 
     private MiniMap _minimap;
 
+    private VBoxContainer _vboxVehiclePositions;
+    private Label _labelVehiclePosition;
+
+    private SpatialVehicle _vehicle;
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -76,7 +81,10 @@ public class HUD : Control
 
         _minimap = (MiniMap)GetNode("MiniMap");
 
-        _fps = (Label)GetNode("FPS"); 
+        _vboxVehiclePositions = (VBoxContainer)GetNode("VBoxVehiclePositions");
+        _labelVehiclePosition = (Label)GetNode("VehiclePosition");
+
+        _fps = (Label)GetNode("FPS");
     }
 
     public MiniMap GetMiniMap()
@@ -96,6 +104,7 @@ public class HUD : Control
 
     public void Initialize(GameWorld gameWorld, SpatialVehicle vehicle)
     {
+        _vehicle = vehicle;
         vehicle.Connect(nameof(SpatialVehicle.CompleteLapTimer), this, nameof(_updateBestLapTimerDisplay));
         vehicle.Connect(nameof(SpatialVehicle.UpdateBoosterTimer), this, nameof(_updateBoosterTImerDisplay));
         vehicle.Connect(nameof(SpatialVehicle.UpdateLapTimer), this, nameof(_updateLapTimerDisplay));
@@ -107,11 +116,46 @@ public class HUD : Control
         gameWorld.Connect(nameof(GameWorld.StartTimerChange), this, nameof(_showStartTimerCountDown));
     }
 
+    public void UpdateVehiclePositions(List<GameWorld.VehiclePosition> vehiclePositions)
+    {
+        int index = 0;
+        foreach (GameWorld.VehiclePosition vehiclePosition in vehiclePositions)
+        {
+            int currentPosition = index + 1;
+
+            Label currentLabel = (Label)(_vboxVehiclePositions.GetChildren()[index]);
+            currentLabel.Text = currentPosition + " - " + vehiclePosition.Name;
+            currentLabel.Visible = true;
+
+            if (vehiclePosition.Name == _vehicle.Name)
+            {
+
+                String suffix = " th";
+                if (currentPosition == 1)
+                {
+                    suffix = " st";
+                }
+                else if (currentPosition == 1)
+                {
+                    suffix = " nd";
+                }
+                else if (currentPosition == 1)
+                {
+                    suffix = " rd";
+                }
+
+                _labelVehiclePosition.Text = currentPosition + suffix;
+            }
+
+            index++;
+        }
+    }
+
     public void _showStartTimerCountDown(int counter)
     {
         String resultText = "" + counter;
-        
-        if(counter == 0)
+
+        if (counter == 0)
         {
             // Set text to GO when counter reaches 0
             resultText = "GO";
@@ -310,6 +354,6 @@ public class HUD : Control
 
     public override void _PhysicsProcess(float delta)
     {
-        _fps.Text = "FPS: " + 1/delta;
+        _fps.Text = "FPS: " + 1 / delta;
     }
 }
