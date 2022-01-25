@@ -73,6 +73,12 @@ public class SpatialVehicle : Spatial
     [Export]
     private float _bodyTilt = 175.0f;
 
+    [Export]
+    private float _boosterAccelerationFactor = 1.3f;
+    [Export]
+    private float _busterboosterAccelerationFactor = 1.5f;
+    
+
     private float _boostRemainTime;
     private Timer _boostTimer;
     private Particles _boostParticles2;
@@ -523,12 +529,12 @@ public class SpatialVehicle : Spatial
 
         if (_boosterMode == BoosterMode.ON)
         {
-            boosterAcceleration = 1.2f;
+            boosterAcceleration = _boosterAccelerationFactor;
         }
 
         if (_boosterMode == BoosterMode.BUST)
         {
-            boosterAcceleration = 1.4f;
+            boosterAcceleration = _busterboosterAccelerationFactor;
         }
 
         // Get accelerate/brake input
@@ -683,8 +689,13 @@ public class SpatialVehicle : Spatial
 
         ((MeshInstance)GetNode("vehicle/modelwheel0")).Rotation = rotation;
         ((MeshInstance)GetNode("vehicle/modelwheel01")).Rotation = rotation;
+    }
 
-
+    // Use for other system to get vheicle transform
+    // Need to use GlobalTransform, otherwise will only get relative origin to spatial
+    public Transform GetVehicleGlobalTransform()
+    {
+        return _vehicleModel.GlobalTransform;
     }
 
     public override void _PhysicsProcess(float delta)
@@ -705,9 +716,9 @@ public class SpatialVehicle : Spatial
                     // Apply the initial state, so this frame will be setup to be same as the state when recorded happen
                     keyInput = vehicleState.KeyInput;
                     _rigidBody.LinearVelocity = vehicleState.RigidBodyLinearVelocity;
-                    Transform tempTransform = _rigidBody.Transform;
+                    Transform tempTransform = _rigidBody.GlobalTransform;
                     tempTransform.origin = vehicleState.RigidBodyOrigin;
-                    _rigidBody.Transform = tempTransform;
+                    _rigidBody.GlobalTransform = tempTransform;
                 }
                 // brake
                 else
@@ -717,16 +728,22 @@ public class SpatialVehicle : Spatial
             }
             else
             {
+                // Normal user control vehicle
+                // Get user input
                 keyInput = GetInput();
 
+                // Push the vehicle state (rigidbody origin/velocity)
                 VehicleState vehicleState = new VehicleState();
                 vehicleState.KeyInput = keyInput;
                 vehicleState.RigidBodyLinearVelocity = _rigidBody.LinearVelocity;
-                vehicleState.RigidBodyOrigin = _rigidBody.Transform.origin;
+                vehicleState.RigidBodyOrigin = _rigidBody.GlobalTransform.origin;
 
+                // Push the state to indicate current frame
                 _gameStates.PushVehicleState(vehicleState);
             }
 
+            // Apply the user input to vehicle
+            // If this is ghost mode vehicle, the rigidbody velocity/origin is being set to be same as recorded frame
             _applyInput(delta, keyInput);
         }
 

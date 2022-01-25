@@ -34,6 +34,10 @@ public class HUD : Control
     private Label _startTimerCounter;
     private Timer _startTimerCounterFadeTimer;
 
+    private Label _fps;
+
+    private MiniMap _minimap;
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -69,6 +73,15 @@ public class HUD : Control
 
         _startTimerCounter = (Label)GetNode("StartTimerCounter");
         _startTimerCounterFadeTimer = (Timer)GetNode("StartTimerCounterFadeTimer");
+
+        _minimap = (MiniMap)GetNode("MiniMap");
+
+        _fps = (Label)GetNode("FPS"); 
+    }
+
+    public MiniMap GetMiniMap()
+    {
+        return _minimap;
     }
 
     public void Initialize(KinematicVehicle vehicle)
@@ -293,5 +306,10 @@ public class HUD : Control
                 _windowDialog.PopupCentered();
             }
         }
+    }
+
+    public override void _PhysicsProcess(float delta)
+    {
+        _fps.Text = "FPS: " + 1/delta;
     }
 }

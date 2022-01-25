@@ -17,6 +17,8 @@ public class GameWorld : Spatial
 
     private Timer _startTimer;
 
+    private Spatial _track;
+
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -25,6 +27,7 @@ public class GameWorld : Spatial
         _startTimerCounter = _initialStartTimerTime + 1;
         vehicles = new List<SpatialVehicle>();
         _gameStates = (GameStates)GetNode("/root/GAMESTATES");
+        _track = (Spatial)GetNode("track_f1");
     }
 
     public void _onReady()
@@ -54,6 +57,16 @@ public class GameWorld : Spatial
         kinematicVehicle.Initialize();
     }
 
+    public Spatial GetTrack()
+    {
+        return _track;
+    }
+
+    public List<SpatialVehicle> GetVehciles()
+    {
+        return vehicles;
+    }
+
     public void InitializeSpatialVehicle()
     {
         SpatialVehicle spatialVehicle = (SpatialVehicle)((PackedScene)GD.Load("res://vehicles/SpatialVehicle.tscn")).Instance();
@@ -80,6 +93,9 @@ public class GameWorld : Spatial
             spatialVehicle.Initialize(true);
             vehicles.Add(spatialVehicle);
         }
+
+        // Initialize minimap after all vehicles are loaded, need to clean up so may able to load at same time as HUD instead of separate logic
+        hud.GetMiniMap().Iniitialize(this);
 
         // Start count down timer
         _startTimer.Start();
