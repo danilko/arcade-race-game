@@ -39,7 +39,8 @@ public class HUD : Control
     private MiniMap _minimap;
 
     private VBoxContainer _vboxVehiclePositions;
-    private Label _labelVehiclePosition;
+    private Label _vehiclePosition;
+    private Label _vehiclePositionSufix;
 
     private SpatialVehicle _vehicle;
 
@@ -82,7 +83,8 @@ public class HUD : Control
         _minimap = (MiniMap)GetNode("MiniMap");
 
         _vboxVehiclePositions = (VBoxContainer)GetNode("VBoxVehiclePositions");
-        _labelVehiclePosition = (Label)GetNode("VehiclePosition");
+        _vehiclePosition = (Label)GetNode("VehiclePosition");
+        _vehiclePositionSufix = (Label)GetNode("VehiclePositionSufix");
 
         _fps = (Label)GetNode("FPS");
     }
@@ -130,21 +132,22 @@ public class HUD : Control
             if (vehiclePosition.Name == _vehicle.Name)
             {
 
-                String suffix = " th";
+                String suffix = "TH";
                 if (currentPosition == 1)
                 {
-                    suffix = " st";
+                    suffix = "ST";
                 }
                 else if (currentPosition == 1)
                 {
-                    suffix = " nd";
+                    suffix = "ND";
                 }
                 else if (currentPosition == 1)
                 {
-                    suffix = " rd";
+                    suffix = "RD";
                 }
 
-                _labelVehiclePosition.Text = currentPosition + suffix;
+                _vehiclePosition.Text = currentPosition + "";
+                _vehiclePositionSufix.Text = suffix;
             }
 
             index++;
