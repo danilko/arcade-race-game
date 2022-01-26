@@ -27,3 +27,6 @@ Following are reference codes implementation and info
 
 [Kids can Code Assets from 3D Kinematic Car section](https://kidscancode.org/godot_recipes/3d/kinematic_car/)
 
+[How to make a simple fire in Godot with 3D particles](https://www.youtube.com/watch?v=8ngg6ueC_ks)
+
+[How to Make a Replay System in Godot in 5 Minutes](https://www.youtube.com/watch?v=Aho8xUNWul8)
