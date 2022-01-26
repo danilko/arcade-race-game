@@ -174,7 +174,7 @@ public class HUD : Control
         _startTimerCounter.Visible = false;
     }
 
-    private void _updateTransformModeDisplay(KinematicVehicle.TransformMode transformMode)
+    private void _updateTransformModeDisplay(SpatialVehicle.TransformMode transformMode)
     {
         // Workaround as the vehicle called this during READY state
         if (_transformMode == null)
@@ -182,7 +182,10 @@ public class HUD : Control
             _transformMode = (Label)GetNode("TransformMode");
         }
 
-        _transformMode.Text = "" + transformMode;
+        String transformText = "" + transformMode;
+        transformText = transformText.Replace("_", " ");
+
+        _transformMode.Text = transformText;
     }
 
     private void _onExitGameSession()
